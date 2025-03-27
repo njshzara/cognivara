@@ -3,26 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Payment Successful | Veridian Health</title>
+    <title>Payment Successful | CogniVara</title> <!-- Updated Title -->
     <link rel="stylesheet" href="style.css">
     <style>
-        .status-page { padding: 80px 20px; text-align: center; max-width: 600px; margin: 40px auto; background-color: var(--secondary-color); border-radius: 8px; border: 1px solid var(--border-color); }
-        .status-page h1 { color: var(--success-color); margin-bottom: 20px; }
-        .status-page p { margin-bottom: 30px; }
+        /* Specific styles for status pages */
+        body { background-color: var(--bg-light); } /* Ensure background consistency */
+        .status-page { padding: 60px 20px; text-align: center; max-width: 600px; margin: 40px auto; background-color: var(--card-bg); border-radius: 8px; border: 1px solid var(--border-color); box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .status-page h1 { color: var(--success-color); margin-bottom: 20px; font-size: clamp(1.6rem, 5vw, 2rem); }
+         .status-page p { margin-bottom: 30px; color: var(--text-secondary); font-size: 1rem; }
+         .status-page .btn { margin-top: 10px; }
     </style>
 </head>
 <body>
-    <!-- Optional: Include Header -->
-     <header class="sticky-header"> <!-- Simple header example -->
-        <div class="container header-container"> <div class="logo"><a href="index.html">Veridian Health</a></div> </div>
+    <!-- Simple Header -->
+     <header class="sticky-header">
+        <div class="container header-container">
+            <div class="logo"><a href="index.html">CogniVara</a></div>
+             <!-- No nav needed on simple status pages -->
+        </div>
      </header>
 
     <main class="status-page container">
         <h1>Payment Successful!</h1>
-        <p>Thank you for your order. You will receive a confirmation email shortly.</p>
+        <p>Thank you for your order with CogniVara. Your payment has been processed successfully. You should receive a confirmation email shortly (if provided).</p>
         <a href="index.html" class="btn btn-primary">Return to Homepage</a>
+        <!-- Optional: Link to an order history page if implemented -->
+        <!-- <a href="/account/orders" class="btn btn-secondary">View Order History</a> -->
     </main>
 
-    <!-- Optional: Include Footer -->
+    <!-- Optional: Include Simplified Footer if desired -->
+    <footer style="margin-top: 40px; text-align: center; padding: 20px; font-size: 0.85rem; color: var(--text-secondary); border-top: 1px solid var(--border-color);">
+        <p>© 2024 CogniVara. All rights reserved.</p>
+    </footer>
 </body>
 </html>

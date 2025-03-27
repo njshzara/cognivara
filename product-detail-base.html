@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- *** CHANGE TITLE PER PRODUCT *** -->
-    <title>Product Name | Veridian Health</title>
+    <title>Product Name | CogniVara</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700&display=swap" rel="stylesheet">
@@ -15,11 +15,11 @@
     <!-- Sticky Header -->
     <header class="sticky-header">
          <div class="container header-container">
-            <div class="logo"><a href="index.html">Veridian Health</a></div>
-            <nav class="main-nav">
+             <div class="logo"><a href="index.html">CogniVara</a></div>
+             <nav class="main-nav" id="main-navigation">
                 <ul>
                     <li><a href="index.html">Home</a></li>
-                    <li><a href="products.html" class="active">Products</a></li> <!-- Mark Products active -->
+                    <li><a href="products.html" class="active">Products</a></li>
                     <li><a href="index.html#about">About</a></li>
                     <li><a href="index.html#contact">Contact</a></li>
                 </ul>
@@ -32,11 +32,14 @@
                     </button>
                     <div class="cart-dropdown">
                         <div class="cart-items"><p class="cart-empty-msg">Your cart is empty.</p></div>
-                        <div class="cart-summary"><p>Subtotal: <span class="cart-total">$0.00</span></p><a href="cart.html" class="btn btn-secondary btn-small view-cart-btn">View Cart</a></div>
+                        <div class="cart-summary">
+                            <p>Subtotal: <span class="cart-total">$0.00</span></p>
+                            <a href="cart.html" class="btn btn-secondary btn-small view-cart-btn">View Cart</a>
+                        </div>
                         <button type="button" class="clear-cart-btn" disabled>Clear Cart</button>
                     </div>
                 </div>
-                <button class="mobile-menu-toggle" aria-label="Toggle Menu"><span></span><span></span><span></span></button>
+                <button type="button" class="mobile-menu-toggle" aria-label="Toggle Menu" aria-expanded="false" aria-controls="main-navigation"><span></span><span></span><span></span></button>
             </div>
         </div>
     </header>
@@ -44,49 +47,47 @@
     <!-- *** REPLACE ALL PLACEHOLDERS BELOW WITH ACTUAL PRODUCT INFO *** -->
     <main class="product-detail-page container">
         <div class="product-layout">
-            <!-- Media Placeholder -->
+            <!-- Media Section: Replace placeholder or use image -->
             <div class="product-media">
-                 <div class="media-placeholder">VH</div> <!-- Simple abstract visual -->
-                 <!-- Or use an image: <img src="assets/product-image.jpg" alt="Product Name"> -->
+                 <!-- Option 1: Placeholder -->
+                 <div class="media-placeholder">CV</div>
+                 <!-- Option 2: Image -->
+                 <!-- <img src="assets/product-image-placeholder.jpg" alt="Product Name Placeholder" loading="lazy"> -->
             </div>
 
             <!-- Product Information -->
             <div class="product-info">
-                <!-- *** REPLACE NAME *** -->
+                <!-- *** REPLACE *** -->
                 <h1>Product Name Placeholder</h1>
-                <!-- *** REPLACE PRICE *** -->
                 <p class="price">$XX.XX</p>
+                <p class="stock-status">Availability: <span class="stock-level">In Stock</span></p>
 
-                <!-- Quantity In Stock Section -->
-                <p class="stock-status">Quantity in Stock: <span class="stock-level">Available</span></p>
-                <!-- Options: "25+", "Low Stock", "Available", "Out of Stock" -->
-
-                <!-- *** REPLACE DESCRIPTION *** -->
                 <section class="product-section">
                     <h2>Description</h2>
-                    <p>Detailed description of the product, its purpose, and unique selling points. Mention key ingredients and their functions.</p>
+                    <!-- *** REPLACE *** -->
+                    <p>Provide a detailed, engaging description of the product here. Explain what it is, its primary purpose, and who it might benefit.</p>
                 </section>
 
-                <!-- *** REPLACE BENEFITS *** -->
                 <section class="product-section">
                     <h2>Key Benefits</h2>
+                    <!-- *** REPLACE *** -->
                     <ul>
-                        <li>Benefit 1 listed here.</li>
-                        <li>Benefit 2 explained clearly.</li>
-                        <li>Benefit 3 highlighted.</li>
-                        <li>Another key benefit.</li>
+                        <li>Benefit 1: Describe a key advantage (e.g., Enhances cognitive focus).</li>
+                        <li>Benefit 2: Describe another advantage (e.g., Supports mental clarity).</li>
+                        <li>Benefit 3: Add more benefits as needed.</li>
                     </ul>
                 </section>
 
-                <!-- *** REPLACE USAGE *** -->
                  <section class="product-section">
                     <h2>Usage</h2>
-                    <p>Recommended dosage, timing, and any specific instructions for using the product effectively and safely.</p>
+                    <!-- *** REPLACE *** -->
+                    <p>Recommended dosage: Take X capsule(s) daily, preferably with a meal, or as directed by your healthcare professional.</p>
                 </section>
 
                 <div class="product-actions-detail">
-                    <!-- *** REPLACE DATA ATTRIBUTES *** -->
+                    <!-- *** REPLACE data-* attributes *** -->
                     <button
+                        type="button"
                         class="btn btn-primary btn-large add-to-cart-btn"
                         data-product-id="PRODUCT_ID_HERE"
                         data-product-name="Product Name Placeholder"
@@ -94,7 +95,6 @@
                         Add to Cart
                     </button>
                 </div>
-
                 <div class="product-disclaimer">
                     <strong>Important Information:</strong>
                     <p>Consult with your physician before using this product, especially if you are pregnant, nursing, taking medication, or have a medical condition. These statements have not been evaluated by the Food and Drug Administration. This product is not intended to diagnose, treat, cure, or prevent any disease.</p>
@@ -102,7 +102,7 @@
             </div>
         </div> <!-- End .product-layout -->
 
-        <!-- Customer Reviews Section -->
+        <!-- Customer Reviews Section (Optional Placeholder) -->
         <section class="reviews-section">
             <h2>Customer Reviews</h2>
             <div class="reviews-list">
@@ -113,7 +113,7 @@
                         <span class="review-author">Satisfied Customer</span>
                         <span class="review-date">Nov 01, 2024</span>
                     </div>
-                    <p class="review-body">This product is amazing! It exceeded my expectations and delivered great results. Highly recommend!</p>
+                    <p class="review-body">This product is amazing! Really noticed a difference in [mention specific benefit]. Exceeded expectations.</p>
                 </div>
                 <!-- Fake Review 2 -->
                  <div class="review-item">
@@ -122,7 +122,7 @@
                         <span class="review-author">Jane D.</span>
                         <span class="review-date">Oct 22, 2024</span>
                     </div>
-                    <p class="review-body">Pretty good overall. Noticed some positive effects after consistent use. Might buy again.</p>
+                    <p class="review-body">Pretty good overall. Took a few weeks, but I started noticing positive effects. Would recommend trying it.</p>
                 </div>
                  <!-- Fake Review 3 -->
                  <div class="review-item">
@@ -131,30 +131,27 @@
                         <span class="review-author">Mark S.</span>
                         <span class="review-date">Oct 05, 2024</span>
                     </div>
-                    <p class="review-body">Exactly what I was looking for. Professional service and fast shipping too. Five stars!</p>
+                    <p class="review-body">Exactly what I was looking for to help with [mention specific need]. Consistent quality. Five stars!</p>
                 </div>
-                <!-- Add more reviews -->
+                <!-- Add more reviews or a "Write a Review" link -->
             </div>
-             <!-- Optional: Add a link/button to "Write a Review" -->
-             <!-- <div style="text-align: center; margin-top: 30px;"><a href="#write-review" class="btn btn-secondary">Write a Review</a></div> -->
         </section>
-        <!-- END Customer Reviews Section -->
 
     </main>
 
     <!-- Footer -->
     <footer id="contact">
-         <div class="container footer-container">
-           <div class="footer-logo"> Veridian Health <p>Pioneering science-based wellness solutions.</p></div>
-           <nav class="footer-nav"><h4>Quick Links</h4><ul><li><a href="index.html">Home</a></li><li><a href="products.html">Products</a></li><li><a href="about-us.html">About Us</a></li><li><a href="#faq">FAQ</a></li></ul></nav>
-           <nav class="footer-nav"><h4>Support</h4><ul><li><a href="#contact-info">Contact Us</a></li><li><a href="#shipping">Shipping & Returns</a></li><li><a href="#privacy">Privacy Policy</a></li><li><a href="#tos">Terms of Service</a></li></ul></nav>
-           <div class="footer-contact"><h4>Get in Touch</h4><p>123 Wellness Way<br>Suite 100<br>Prosperity City, ST 12345</p><p><a href="mailto:support@veridianhealth.example.com">support@veridianhealth.example.com</a></p><p><a href="tel:+15551234567">(555) 123-4567</a></p></div>
-       </div>
-       <div class="footer-bottom"><p>© 2024 Veridian Health. All rights reserved.</p><p class="disclaimer-footer">Disclaimer: These statements have not been evaluated by the Food and Drug Administration. These products are not intended to diagnose, treat, cure, or prevent any disease. Consult with your healthcare provider before using any supplement, especially if you have a medical condition, are taking medication, are pregnant, or nursing.</p></div>
+        <div class="container footer-container">
+            <div class="footer-logo"> CogniVara <p>Pioneering science-based wellness solutions.</p></div>
+            <nav class="footer-nav"><h4>Quick Links</h4><ul><li><a href="index.html">Home</a></li><li><a href="products.html">Products</a></li><li><a href="about-us.html">About Us</a></li><li><a href="#faq">FAQ</a></li></ul></nav>
+            <nav class="footer-nav"><h4>Support</h4><ul><li><a href="#contact-info">Contact Us</a></li><li><a href="#shipping">Shipping & Returns</a></li><li><a href="#privacy">Privacy Policy</a></li><li><a href="#tos">Terms of Service</a></li></ul></nav>
+            <div class="footer-contact" id="contact-info"><h4>Get in Touch</h4><p>123 Wellness Way<br>Suite 100<br>Prosperity City, ST 12345</p><p><a href="mailto:support@cognivara.example.com">support@cognivara.example.com</a></p><p><a href="tel:+15551234567">(555) 123-4567</a></p></div>
+        </div>
+        <div class="footer-bottom"><p>© 2024 CogniVara. All rights reserved.</p><p class="disclaimer-footer">Disclaimer: These statements have not been evaluated by the Food and Drug Administration. These products are not intended to diagnose, treat, cure, or prevent any disease. Consult your physician before use.</p></div>
     </footer>
 
     <!-- Scripts -->
-    <script src="https://js.stripe.com/v3/"></script> <!-- Stripe.js -->
-    <script src="script.js"></script>
+    <script src="https://js.stripe.com/v3/"></script>
+    <script src="script.js" defer></script>
 </body>
 </html>
