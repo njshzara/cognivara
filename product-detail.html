@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Name | Aura Wellness</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Sticky Header -->
+    <header class="sticky-header">
+        <div class="container header-container">
+            <div class="logo"><a href="index.html">Aura Wellness</a></div>
+            <nav class="main-nav">
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="products.html" class="active">Products</a></li>
+                    <li><a href="#about">About</a></li>
+                    <li><a href="#contact">Contact</a></li>
+                </ul>
+            </nav>
+            <div class="header-actions">
+                <a href="#cart" class="cart-icon" aria-label="Shopping Cart">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+                    <span class="cart-count">0</span>
+                </a>
+                <button class="mobile-menu-toggle" aria-label="Toggle Menu"><span></span><span></span><span></span></button>
+            </div>
+        </div>
+    </header>
+
+    <main class="product-detail-page container">
+        <div class="product-layout">
+            <div class="product-media">
+                <div class="media-placeholder">AW</div>
+            </div>
+            <div class="product-info">
+                <h1>Vitality Boost Formula</h1>
+                <p class="price">$79.99</p>
+
+                <section class="product-section">
+                    <h2>Description</h2>
+                    <p>A carefully curated blend of essential nutrients and adaptogens designed to support sustained energy production, combat fatigue, and promote overall physiological balance.</p>
+                </section>
+
+                <section class="product-section">
+                    <h2>Key Benefits</h2>
+                    <ul>
+                        <li>Supports natural energy levels without jitters.</li>
+                        <li>Aids adaptation to physical and mental stressors.</li>
+                        <li>Promotes metabolic efficiency.</li>
+                        <li>Contributes to overall well-being and vitality.</li>
+                    </ul>
+                </section>
+
+                <section class="product-section">
+                    <h2>Usage</h2>
+                    <p>Take two capsules daily with water, preferably in the morning. Consistent use is recommended for optimal results.</p>
+                </section>
+
+                <div class="product-actions-detail">
+                    <button class="btn btn-primary btn-large">Add to Cart</button>
+                </div>
+
+                <div class="product-disclaimer">
+                    <strong>Important Information:</strong>
+                    <p>Consult with your physician before using this product. These statements have not been evaluated by the FDA.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Related Products Demo Section -->
+        <section class="related-products container">
+            <h2>Related Products</h2>
+            <div class="related-products-grid">
+                <div class="related-product-item">
+                    <img src="https://via.placeholder.com/200" alt="NeuroOptimize Focus Blend">
+                    <h3>NeuroOptimize Focus Blend</h3>
+                    <p class="price">$84.99</p>
+                    <button class="btn btn-secondary add-to-cart-btn" data-product-id="focus01" data-product-name="NeuroOptimize Focus Blend" data-product-price="84.99">Add to Cart</button>
+                </div>
+                <div class="related-product-item">
+                    <img src="https://via.placeholder.com/200" alt="Immune Support Formula">
+                    <h3>Immune Support Formula</h3>
+                    <p class="price">$69.99</p>
+                    <button class="btn btn-secondary add-to-cart-btn" data-product-id="immune01" data-product-name="Immune Support Formula" data-product-price="69.99">Add to Cart</button>
+                </div>
+                <div class="related-product-item">
+                    <img src="https://via.placeholder.com/200" alt="Relaxation Blend">
+                    <h3>Relaxation Blend</h3>
+                    <p class="price">$74.99</p>
+                    <button class="btn btn-secondary add-to-cart-btn" data-product-id="relax01" data-product-name="Relaxation Blend" data-product-price="74.99">Add to Cart</button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container footer-container">
+            <div class="footer-logo">Aura Wellness<p>Committed to your enhanced well-being.</p></div>
+            <nav class="footer-nav">
+                <ul><li><a href="#privacy">Privacy Policy</a></li><li><a href="#tos">Terms of Service</a></li><li><a href="#contact">Contact Us</a></li><li><a href="#faq">FAQ</a></li></ul>
+            </nav>
+            <div class="footer-social"></div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2024 Aura Wellness. All rights reserved.</p>
+            <p class="disclaimer-footer">Disclaimer: These products are intended for use under the guidance of a healthcare professional.</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

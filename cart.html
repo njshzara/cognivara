@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopping Cart | Veridian Health</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Sticky Header -->
+     <header class="sticky-header">
+         <div class="container header-container">
+            <div class="logo">
+                <a href="index.html">Veridian Health</a>
+            </div>
+            <nav class="main-nav">
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="products.html">Products</a></li>
+                    <li><a href="index.html#about">About</a></li>
+                    <li><a href="index.html#contact">Contact</a></li>
+                </ul>
+            </nav>
+            <div class="header-actions">
+                <div class="cart-container">
+                    <button type="button" class="cart-icon" aria-label="Shopping Cart">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-shopping-bag"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+                        <span class="cart-count">0</span>
+                    </button>
+                    <!-- Cart Dropdown -->
+                    <div class="cart-dropdown">
+                        <div class="cart-items"><p class="cart-empty-msg">Your cart is empty.</p></div>
+                        <div class="cart-summary">
+                            <p>Subtotal: <span class="cart-total">$0.00</span></p>
+                            <a href="cart.html" class="btn btn-secondary btn-small view-cart-btn">View Cart</a>
+                        </div>
+                        <button type="button" class="clear-cart-btn" disabled>Clear Cart</button>
+                    </div>
+                </div>
+                <button class="mobile-menu-toggle" aria-label="Toggle Menu"><span></span><span></span><span></span></button>
+            </div>
+        </div>
+    </header>
+
+    <main class="cart-page container">
+        <h1>Shopping Cart</h1>
+
+        <!-- This div wraps the table and summary, hidden when cart is empty -->
+        <div id="cart-contents" style="display: none;"> <!-- Initially hidden -->
+            <div class="cart-page-wrapper">
+                <!-- Cart Items Table -->
+                <div class="cart-table-container">
+                    <table class="cart-table" id="cart-table">
+                        <thead>
+                            <tr>
+                                <th colspan="2">Product</th>
+                                <th>Price</th>
+                                <th>Quantity</th>
+                                <th>Total</th>
+                                <th>Remove</th>
+                            </tr>
+                        </thead>
+                        <tbody id="cart-items-body">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+
+              <!-- cart.html -->
+                <!-- Cart Summary Box -->
+                <div class="cart-summary-box">
+                    <h2>Order Summary</h2>
+                    <div class="summary-line">
+                        <span>Subtotal</span>
+                        <span id="cart-subtotal">$0.00</span>
+                    </div>
+                    <div class="summary-line">
+                        <span>Shipping</span>
+                        <span>Calculated at checkout</span>
+                    </div>
+                    <div class="summary-line total-line">
+                        <span>Grand Total</span>
+                        <span id="cart-grand-total">$0.00</span>
+                    </div>
+
+                    <!-- NEW: Email Input Field -->
+                    <div class="email-input-group">
+                        <label for="customer-email">Email for receipt:</label>
+                        <input type="email" id="customer-email" name="customer-email" placeholder="you@example.com" required>
+                    </div>
+                    <!-- END NEW -->
+
+                    <button id="checkout-btn" class="btn btn-primary btn-large checkout-btn-full" disabled>
+                        Proceed to Checkout
+                    </button>
+                     <a href="products.html" class="continue-shopping-link">
+                       ← Continue Shopping
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Empty Cart Message - Shown when cart is empty -->
+        <div id="empty-cart-message" class="empty-cart-container" style="display: none;"> <!-- Initially hidden -->
+            <h2>Your Cart is Empty</h2>
+            <p>Looks like you haven't added any products yet.</p>
+            <a href="products.html" class="btn btn-primary">Explore Products</a>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer id="contact">
+        <!-- Footer content remains the same -->
+        <div class="container footer-container">
+            <div class="footer-logo"> Veridian Health <p>Pioneering science-based wellness solutions.</p></div>
+            <nav class="footer-nav"><h4>Quick Links</h4><ul><li><a href="index.html">Home</a></li><li><a href="products.html">Products</a></li><li><a href="about-us.html">About Us</a></li><li><a href="#faq">FAQ</a></li></ul></nav>
+            <nav class="footer-nav"><h4>Support</h4><ul><li><a href="#contact-info">Contact Us</a></li><li><a href="#shipping">Shipping & Returns</a></li><li><a href="#privacy">Privacy Policy</a></li><li><a href="#tos">Terms of Service</a></li></ul></nav>
+            <div class="footer-contact"><h4>Get in Touch</h4><p>123 Wellness Way<br>Suite 100<br>Prosperity City, ST 12345</p><p><a href="mailto:support@veridianhealth.example.com">support@veridianhealth.example.com</a></p><p><a href="tel:+15551234567">(555) 123-4567</a></p></div>
+        </div>
+        <div class="footer-bottom"><p>© 2024 Veridian Health. All rights reserved.</p><p class="disclaimer-footer">Disclaimer: These statements have not been evaluated by the Food and Drug Administration...[rest of disclaimer]</p></div>
+    </footer>
+    <script src="https://js.stripe.com/v3/"></script> 
+    <script src="script.js"></script>
+</body>
+</html>
