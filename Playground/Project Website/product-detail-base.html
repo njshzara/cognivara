@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- *** CHANGE TITLE PER PRODUCT *** -->
+    <title>Product Name | Veridian Health</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Sticky Header -->
+    <header class="sticky-header">
+        <div class="container header-container">
+            <div class="logo">
+                <a href="index.html">Veridian Health</a>
+            </div>
+            <nav class="main-nav">
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="products.html" class="active">Products</a></li> <!-- Mark Products active -->
+                    <li><a href="index.html#about">About</a></li>
+                    <li><a href="index.html#contact">Contact</a></li>
+                </ul>
+            </nav>
+            <div class="header-actions">
+                <div class="cart-container">
+                    <button type="button" class="cart-icon" aria-label="Shopping Cart">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+                        <span class="cart-count">0</span>
+                    </button>
+                    <div class="cart-dropdown">
+                        <div class="cart-items">
+                            <p class="cart-empty-msg">Your cart is empty.</p>
+                            <!-- Cart items added by JS -->
+                        </div>
+                        <div class="cart-summary">
+                            <p>Subtotal: <span class="cart-total">$0.00</span></p>
+                            <a href="cart.html" class="btn btn-secondary btn-small view-cart-btn">View Cart</a>
+                        </div>
+                        <button type="button" class="clear-cart-btn" disabled>Clear Cart</button>
+                    </div>
+                </div>
+                <button class="mobile-menu-toggle" aria-label="Toggle Menu"><span></span><span></span><span></span></button>
+            </div>
+        </div>
+    </header>
+
+    <!-- *** REPLACE ALL PLACEHOLDERS BELOW WITH ACTUAL PRODUCT INFO *** -->
+    <main class="product-detail-page container">
+        <div class="product-layout">
+            <!-- Media Placeholder -->
+            <div class="product-media">
+                 <div class="media-placeholder">VH</div> <!-- Simple abstract visual -->
+                 <!-- Or use an image: <img src="assets/product-image.jpg" alt="Product Name"> -->
+            </div>
+
+            <!-- Product Information -->
+            <div class="product-info">
+                <h1>NeuroOptimize Focus Blend</h1> <!-- Product Name -->
+                <p class="price">$84.99</p>
+
+                <!-- NEW: Stock Status -->
+                <p class="stock-status">Quantity in Stock: <span class="stock-level">25+</span></p>
+                <!-- Options: "Low Stock", "Out of Stock", or a number -->
+                <!-- Can add a stock-level class to span for styling as low or sold out -->
+
+                <section class="product-section">
+                    <h2>Description</h2>
+                    <p>A synergistic blend including Citicoline and Bacopa Monnieri designed to sharpen cognitive function, enhance memory recall, and sustain mental clarity throughout your demanding day.</p>
+                </section>
+
+                <section class="product-section">
+                    <h2>Key Benefits</h2>
+                    <ul>
+                        <li>Supports focus and concentration.</li>
+                        <li>Aids memory formation and recall.</li>
+                        <li>Promotes mental energy and clarity.</li>
+                        <li>Adaptogenic support for cognitive stress.</li>
+                    </ul>
+                </section>
+
+                 <section class="product-section">
+                    <h2>Usage</h2>
+                    <p>Take two capsules daily with water, preferably in the morning or as directed by your healthcare provider.</p>
+                </section>
+
+                <div class="product-actions-detail">
+                    <button
+                        class="btn btn-primary btn-large add-to-cart-btn"
+                        data-product-id="neuro01" <!-- *** CHANGE PER PRODUCT *** -->
+                        data-product-name="NeuroOptimize Focus Blend" <!-- *** CHANGE PER PRODUCT *** -->
+                        data-product-price="84.99"> <!-- *** CHANGE PER PRODUCT *** -->
+                        Add to Cart
+                    </button>
+                </div>
+
+                <div class="product-disclaimer">
+                    <strong>Important Information:</strong>
+                    <p>Consult with your physician before using this product, especially if you are pregnant, nursing, taking medication, or have a medical condition. These statements have not been evaluated by the Food and Drug Administration. This product is not intended to diagnose, treat, cure, or prevent any disease.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- NEW: Customer Reviews Section -->
+        <section class="reviews-section">
+            <h2>Customer Reviews</h2>
+            <div class="reviews-list">
+                <!-- Fake Review 1 -->
+                <div class="review-item">
+                    <div class="review-header">
+                        <!-- Using text stars for simplicity. Could use SVGs or icon font -->
+                        <span class="review-rating" title="4 out of 5 stars">★★★★☆</span>
+                        <span class="review-author">Alex P.</span>
+                        <span class="review-date">Oct 15, 2024</span>
+                    </div>
+                    <p class="review-body">Noticeable difference in my ability to focus during long work sessions. Doesn't give me jitters like caffeine. Will likely reorder.</p>
+                </div>
+                <!-- Fake Review 2 -->
+                 <div class="review-item">
+                    <div class="review-header">
+                        <span class="review-rating" title="5 out of 5 stars">★★★★★</span>
+                        <span class="review-author">Samantha G.</span>
+                        <span class="review-date">Sep 28, 2024</span>
+                    </div>
+                    <p class="review-body">Been taking this for about a month and my recall feels sharper. Subtle but definitely effective for me. Impressed with the quality.</p>
+                </div>
+                 <!-- Fake Review 3 -->
+                 <div class="review-item">
+                    <div class="review-header">
+                        <span class="review-rating" title="4 out of 5 stars">★★★★☆</span>
+                        <span class="review-author">Mike R.</span>
+                        <span class="review-date">Sep 10, 2024</span>
+                    </div>
+                    <p class="review-body">Good product. Seems to help with afternoon brain fog. Packaging is professional too.</p>
+                </div>
+                <!-- You can add more static reviews here -->
+            </div>
+             <!-- Optional: Add a link/button to "Write a Review" -->
+             <!-- <div style="text-align: center; margin-top: 30px;"><a href="#write-review" class="btn btn-secondary">Write a Review</a></div> -->
+        </section>
+        <!-- ## END FAKE REVIEWS ## -->
+
+    </main>
+
+    <!-- Footer -->
+    <footer id="contact">
+         <div class="container footer-container">
+           <div class="footer-logo"> Veridian Health <p>Pioneering science-based wellness solutions.</p></div>
+           <nav class="footer-nav"><h4>Quick Links</h4><ul><li><a href="index.html">Home</a></li><li><a href="products.html">Products</a></li><li><a href="about-us.html">About Us</a></li><li><a href="#faq">FAQ</a></li></ul></nav>
+           <nav class="footer-nav"><h4>Support</h4><ul><li><a href="#contact-info">Contact Us</a></li><li><a href="#shipping">Shipping & Returns</a></li><li><a href="#privacy">Privacy Policy</a></li><li><a href="#tos">Terms of Service</a></li></ul></nav>
+           <div class="footer-contact"><h4>Get in Touch</h4><p>123 Wellness Way<br>Suite 100<br>Prosperity City, ST 12345</p><p><a href="mailto:support@veridianhealth.example.com">support@veridianhealth.example.com</a></p><p><a href="tel:+15551234567">(555) 123-4567</a></p></div>
+       </div>
+       <div class="footer-bottom"><p>© 2024 Veridian Health. All rights reserved.</p><p class="disclaimer-footer">Disclaimer: These statements have not been evaluated by the Food and Drug Administration. These products are not intended to diagnose, treat, cure, or prevent any disease. Consult with your healthcare provider before using any supplement, especially if you have a medical condition, are taking medication, are pregnant, or nursing.</p></div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://js.stripe.com/v3/"></script> <!-- Stripe.js -->
+    <script src="script.js"></script>
+</body>
+</html>
