@@ -249,3 +249,4 @@ footer { background-color: var(--footer-bg); color: var(--footer-text-color); pa
 /* Reviews Section */
 .reviews-section { margin-top: 60px; padding-top: 40px; border-top: 1px solid var(--border-color); }
 .reviews-section h2 { text-align: center; margin-bottom: 40px; color: var(--text-primary);
+}
