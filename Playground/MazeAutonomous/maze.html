@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Self-Driving Go-Kart vFinal</title>
+    <style>
+        body { font-family: sans-serif; }
+        canvas {
+            border: 1px solid black;
+            display: block; /* Prevents extra space below canvas */
+            margin-bottom: 10px;
+            background-color: #e0e0e0;
+        }
+        #status { font-size: 14px; margin-bottom: 5px; min-height: 3em; border: 1px solid #ccc; padding: 5px; background-color: #f8f8f8;}
+        button { margin: 2px 5px 10px 0; padding: 5px 10px; cursor: pointer; }
+        .controls label { margin-right: 15px; }
+    </style>
+    <!-- Optional: Include TensorFlow.js if planning for DQN later -->
+    <!-- <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script> -->
+</head>
+<body>
+    <canvas id="mazeCanvas"></canvas>
+    <div id="status">Status: Initializing...</div>
+    <div class="controls">
+        <button id="saveBtn">Save Training</button>
+        <button id="loadBtn">Load Training</button>
+        <button id="clearBtn">Clear Training</button>
+        <button id="toggleTrainBtn">Pause Training</button>
+        <button id="manualDriveBtn">Enable Manual Drive</button>
+         <label><input type="checkbox" id="showSensorsChk" checked> Show Sensors</label>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('mazeCanvas');
+        const ctx = canvas.getContext('2d');
+        const statusDiv = document.getElementById('status');
+        const saveBtn = document.getElementById('saveBtn');
+        const loadBtn = document.getElementById('loadBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const toggleTrainBtn = document.getElementById('toggleTrainBtn');
+        const manualDriveBtn = document.getElementById('manualDriveBtn');
+        const showSensorsChk = document.getElementById('showSensorsChk');
+
+        // --- Maze & Simulation Parameters ---
+        let blockSize = 25;
+        let currentMazeWidth = 21; // Start smaller for curriculum
+        let currentMazeHeight = 15;
+        const maxMazeWidth = 35; // Max size for curriculum
+        const maxMazeHeight = 25;
+        const mazeSizeIncrement = 4; // How much to increase size by
+        const curriculumEpisodeInterval = 250; // Increase complexity every N episodes
+
+        // Dynamic canvas sizing
+        canvas.width = currentMazeWidth * blockSize;
+        canvas.height = currentMazeHeight * blockSize;
+        let mazeWidth = currentMazeWidth; // Keep track for logic
+        let mazeHeight = currentMazeHeight;
+
+        let startPos = { x: 1, y: 1 };
+        let endPos = { x: mazeWidth - 2, y: mazeHeight - 2 }; // Will be updated on resize
+
+        let maze = [];
+        let manualMode = false;
+        const keys = {}; // For manual control
+
+
+        // --- Maze Generation (Prim's - Accepts size) ---
+        function generateMaze(width, height) {
+            console.log(`Generating maze (${width}x${height})...`);
+            maze = new Array(height).fill(null).map(() => new Array(width).fill(true));
+            let walls = [];
+            startPos = { x: 1, y: 1 }; // Reset start/end for new size
+            endPos = { x: width - 2, y: height - 2 };
+
+            maze[startPos.y][startPos.x] = false;
+
+            // Add walls adjacent to start
+            const potentialWalls = [
+                [startPos.y, startPos.x + 1, startPos.y, startPos.x], // Right
+                [startPos.y + 1, startPos.x, startPos.y, startPos.x], // Down
+                [startPos.y, startPos.x - 1, startPos.y, startPos.x], // Left
+                [startPos.y - 1, startPos.x, startPos.y, startPos.x]  // Up
+            ];
+            potentialWalls.forEach(([wy, wx, cy, cx]) => {
+                if (wy > 0 && wy < height - 1 && wx > 0 && wx < width - 1) {
+                    walls.push([wy, wx, cy, cx]);
+                }
+            });
+
+
+            while (walls.length > 0) {
+                const randomIndex = Math.floor(Math.random() * walls.length);
+                const [wallY, wallX, cellY, cellX] = walls[randomIndex];
+                walls.splice(randomIndex, 1);
+
+                const oppositeY = wallY + (wallY - cellY);
+                const oppositeX = wallX + (wallX - cellX);
+
+                if (oppositeY > 0 && oppositeY < height - 1 &&
+                    oppositeX > 0 && oppositeX < width - 1 &&
+                    maze[oppositeY]?.[oppositeX]) { // Check if opposite exists and is a wall
+
+                    maze[wallY][wallX] = false;
+                    maze[oppositeY][oppositeX] = false;
+
+                    // Add neighboring walls of the new cell
+                    const newPotentialWalls = [
+                        [oppositeY, oppositeX + 1, oppositeY, oppositeX],
+                        [oppositeY, oppositeX - 1, oppositeY, oppositeX],
+                        [oppositeY + 1, oppositeX, oppositeY, oppositeX],
+                        [oppositeY - 1, oppositeX, oppositeY, oppositeX]
+                    ];
+                     newPotentialWalls.forEach(([wy, wx, cy, cx]) => {
+                        // Check bounds and if it's a wall before adding
+                        if (wy > 0 && wy < height - 1 && wx > 0 && wx < width - 1 && maze[wy]?.[wx]) {
+                            // Prevent adding duplicate walls
+                            if (!walls.some(w => w[0] === wy && w[1] === wx)) {
+                                walls.push([wy, wx, cy, cx]);
+                            }
+                        }
+                    });
+                }
+            }
+             maze[startPos.y][startPos.x] = false; // Ensure start is path
+             if(maze[endPos.y]) maze[endPos.y][endPos.x] = false; // Ensure end is path (check row exists)
+
+             // Ensure end is accessible (simplified check)
+             let connected = false;
+             if(endPos.y > 0 && maze[endPos.y-1]?.[endPos.x] === false) connected = true;
+             else if(endPos.x > 0 && maze[endPos.y]?.[endPos.x-1] === false) connected = true;
+             else if(endPos.y < height-1 && maze[endPos.y+1]?.[endPos.x] === false) connected = true;
+             else if(endPos.x < width-1 && maze[endPos.y]?.[endPos.x+1] === false) connected = true;
+
+             if (!connected && maze[endPos.y]) { // Force connection if needed and row exists
+                 console.warn("End point potentially isolated, forcing connection...");
+                 // Prioritize opening towards inside first
+                 if (endPos.y > 0 && maze[endPos.y - 1]?.[endPos.x] === true) maze[endPos.y - 1][endPos.x] = false;
+                 else if (endPos.x > 0 && maze[endPos.y]?.[endPos.x - 1] === true) maze[endPos.y][endPos.x - 1] = false;
+                 // Fallback to opening towards edges if inner are already open or blocked
+                 else if (endPos.y < height - 1 && maze[endPos.y + 1]?.[endPos.x] === true) maze[endPos.y + 1][endPos.x] = false;
+                 else if (endPos.x < width - 1 && maze[endPos.y]?.[endPos.x + 1] === true) maze[endPos.y][endPos.x + 1] = false;
+             }
+
+            console.log(`Maze generation complete. Start: (${startPos.x},${startPos.y}), End: (${endPos.x},${endPos.y})`);
+            return maze;
+        }
+
+
+        // --- Drawing ---
+        function drawMaze() {
+            if (!maze || maze.length === 0) return; // Don't draw if maze not ready
+
+            ctx.fillStyle = '#BBBBBB'; // Slightly darker road base
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            const roadColor = '#AAAAAA';
+            const wallColor = '#5a4d41'; // Brownish wall color
+            const lineColor = 'rgba(255, 223, 0, 0.7)'; // Yellowish centerline
+
+            for (let y = 0; y < mazeHeight; y++) {
+                for (let x = 0; x < mazeWidth; x++) {
+                    if (!maze[y] || maze[y][x] === undefined) continue; // Boundary check for resizing
+
+                    if (maze[y][x]) { // Wall
+                        ctx.fillStyle = wallColor;
+                        ctx.fillRect(x * blockSize, y * blockSize, blockSize, blockSize);
+                        // Add a subtle border for depth
+                        ctx.strokeStyle = 'rgba(0,0,0,0.2)';
+                        ctx.lineWidth = 1;
+                        ctx.strokeRect(x * blockSize + 0.5, y * blockSize + 0.5, blockSize-1, blockSize-1);
+                    } else { // Path
+                        ctx.fillStyle = roadColor;
+                        ctx.fillRect(x * blockSize, y * blockSize, blockSize, blockSize);
+                        // Draw centerlines (simple version)
+                        ctx.strokeStyle = lineColor;
+                        ctx.lineWidth = 2;
+                         ctx.beginPath();
+                         // Check neighbors to decide on line direction
+                         let hasHNeighbor = (x > 0 && maze[y]?.[x-1] === false) || (x < mazeWidth - 1 && maze[y]?.[x+1] === false);
+                         let hasVNeighbor = (y > 0 && maze[y-1]?.[x] === false) || (y < mazeHeight - 1 && maze[y+1]?.[x] === false);
+
+                         if (hasHNeighbor && !hasVNeighbor) { // Horizontal path
+                             ctx.moveTo(x * blockSize, y * blockSize + blockSize / 2);
+                             ctx.lineTo((x + 1) * blockSize, y * blockSize + blockSize / 2);
+                         } else if (hasVNeighbor && !hasHNeighbor) { // Vertical path
+                            ctx.moveTo(x * blockSize + blockSize / 2, y * blockSize);
+                            ctx.lineTo(x * blockSize + blockSize / 2, (y + 1) * blockSize);
+                         } else if (hasHNeighbor && hasVNeighbor) { // Intersection, draw cross
+                             ctx.moveTo(x * blockSize + blockSize / 2, y * blockSize);
+                            ctx.lineTo(x * blockSize + blockSize / 2, (y + 1) * blockSize);
+                             ctx.moveTo(x * blockSize, y * blockSize + blockSize / 2);
+                             ctx.lineTo((x + 1) * blockSize, y * blockSize + blockSize / 2);
+                         }
+                        ctx.stroke();
+                    }
+                }
+            }
+            // Highlight start/end (less opaque) if they exist
+            if(startPos && endPos) {
+                ctx.fillStyle = 'rgba(0, 255, 0, 0.5)';
+                ctx.fillRect(startPos.x * blockSize, startPos.y * blockSize, blockSize, blockSize);
+                ctx.fillStyle = 'rgba(255, 0, 0, 0.5)';
+                 // Ensure end position is within current bounds before drawing
+                 if (endPos.x < mazeWidth && endPos.y < mazeHeight) {
+                    ctx.fillRect(endPos.x * blockSize, endPos.y * blockSize, blockSize, blockSize);
+                 }
+            }
+        }
+
+
+        // --- Car Physics & Drawing ---
+        const car = {
+            x: 0, y: 0, // Pixel coordinates (center)
+            width: blockSize * 0.7,
+            height: blockSize * 0.45,
+            angle: 0, // Radians (0=right, PI/2=down)
+            speed: 0,
+            angleSpeed: 0,
+            maxSpeed: 3.5,
+            acceleration: 0.15,
+            brakePower: 0.25, // How strong the brakes are
+            turnRate: 0.06, // Radians per step impulse
+            friction: 0.96, // Normal friction
+            coastFriction: 0.985, // Less friction when coasting
+            angleFriction: 0.85, // Dampens turning speed
+            collided: false,
+            reachedEnd: false,
+            sensors: [], // Store sensor {angle, distance} pairs
+            sensorAngles: [-Math.PI / 3, -Math.PI / 6, 0, Math.PI / 6, Math.PI / 3], // -60, -30, 0, 30, 60 deg
+            sensorMaxDist: blockSize * 6, // How far sensors can "see"
+        };
+
+        function resetCar() {
+             if(!startPos) return; // Guard if maze not generated yet
+            car.x = startPos.x * blockSize + blockSize / 2;
+            car.y = startPos.y * blockSize + blockSize / 2;
+            car.angle = 0; // Start facing right
+            car.speed = 0;
+            car.angleSpeed = 0;
+            car.collided = false;
+            car.reachedEnd = false;
+            car.sensors = []; // Clear sensors
+            console.log("Car reset.");
+        }
+
+        function drawCar() {
+             ctx.save();
+             ctx.translate(car.x, car.y);
+             ctx.rotate(car.angle);
+
+             // Car Body (more detailed shape)
+             ctx.fillStyle = '#0077cc'; // Blue
+             ctx.beginPath();
+             ctx.moveTo(-car.width / 2, -car.height / 2); // Top-left corner
+             ctx.lineTo(car.width / 2 - car.width * 0.1, -car.height / 2); // Top-right (slightly angled front)
+             ctx.lineTo(car.width / 2, 0); // Nose center
+             ctx.lineTo(car.width / 2 - car.width * 0.1, car.height / 2); // Bottom-right
+             ctx.lineTo(-car.width / 2, car.height / 2); // Bottom-left
+             ctx.closePath();
+             ctx.fill();
+
+              // Outline
+              ctx.strokeStyle = '#003366';
+              ctx.lineWidth = 1;
+              ctx.stroke();
+
+
+             // Windshield
+             ctx.fillStyle = '#aaddff'; // Light blue
+             ctx.beginPath();
+             ctx.moveTo(car.width * 0.1, -car.height * 0.4);
+             ctx.lineTo(car.width * 0.4, -car.height * 0.4);
+             ctx.lineTo(car.width * 0.3, car.height * 0.4);
+             ctx.lineTo(car.width * 0.1, car.height * 0.4);
+             ctx.closePath();
+             ctx.fill();
+
+             ctx.restore();
+
+              // Draw Sensors (if enabled)
+              if (showSensorsChk.checked) {
+                 drawSensors();
+             }
+        }
+
+
+        // --- Collision Detection & Sensors ---
+         function isWall(cellX, cellY) {
+            // Check boundaries and if the cell is a wall (true)
+             if (cellX < 0 || cellX >= mazeWidth || cellY < 0 || cellY >= mazeHeight || !maze[cellY]) {
+                 return true; // Treat out of bounds or undefined row as wall
+             }
+             return maze[cellY][cellX]; // True if wall
+         }
+
+        function getCarCorners() {
+            const corners = [];
+            const halfW = car.width / 2;
+            const halfH = car.height / 2;
+            const cosA = Math.cos(car.angle);
+            const sinA = Math.sin(car.angle);
+
+            // Calculate offsets from center to corners
+            const offsets = [
+                { dx: -halfW, dy: -halfH }, // Top-left
+                { dx: halfW, dy: -halfH },  // Top-right
+                { dx: halfW, dy: halfH },   // Bottom-right
+                { dx: -halfW, dy: halfH }   // Bottom-left
+            ];
+
+            for (const offset of offsets) {
+                // Rotate offset
+                const rotatedX = offset.dx * cosA - offset.dy * sinA;
+                const rotatedY = offset.dx * sinA + offset.dy * cosA;
+                // Add to car center position
+                corners.push({ x: car.x + rotatedX, y: car.y + rotatedY });
+            }
+            return corners;
+        }
+
+        function checkCarCollision() {
+            const corners = getCarCorners();
+            for (const corner of corners) {
+                const cellX = Math.floor(corner.x / blockSize);
+                const cellY = Math.floor(corner.y / blockSize);
+                if (isWall(cellX, cellY)) {
+                    return true; // Collision detected
+                }
+            }
+            return false; // No collision
+        }
+
+        function castSensorRay(startX, startY, angle) {
+            let x = startX;
+            let y = startY;
+            const stepSize = blockSize / 4; // Smaller steps for more accuracy
+
+            for (let dist = 0; dist < car.sensorMaxDist; dist += stepSize) {
+                x += Math.cos(angle) * stepSize;
+                y += Math.sin(angle) * stepSize;
+
+                const cellX = Math.floor(x / blockSize);
+                const cellY = Math.floor(y / blockSize);
+
+                if (isWall(cellX, cellY)) {
+                    // Return distance to the collision point
+                    return Math.hypot(x - startX, y - startY); // Use hypot for accuracy
+                }
+            }
+            // No wall hit within max distance
+            return car.sensorMaxDist;
+        }
+
+        function updateSensors() {
+            car.sensors = car.sensorAngles.map(sensorAngleOffset => {
+                const absoluteAngle = car.angle + sensorAngleOffset;
+                const distance = castSensorRay(car.x, car.y, absoluteAngle);
+                return { angle: absoluteAngle, distance: distance };
+            });
+        }
+
+        function drawSensors() {
+             if (!car.sensors || car.sensors.length === 0) return;
+             ctx.save();
+             ctx.lineWidth = 1;
+             for(const sensor of car.sensors) {
+                 const endX = car.x + Math.cos(sensor.angle) * sensor.distance;
+                 const endY = car.y + Math.sin(sensor.angle) * sensor.distance;
+                 const hitWall = sensor.distance < car.sensorMaxDist;
+
+                 ctx.strokeStyle = hitWall ? 'rgba(255, 0, 0, 0.6)' : 'rgba(0, 255, 0, 0.4)'; // Red if hit, green if not
+                 ctx.beginPath();
+                 ctx.moveTo(car.x, car.y);
+                 ctx.lineTo(endX, endY);
+                 ctx.stroke();
+
+                 // Draw a small circle at the hit point
+                 if(hitWall) {
+                     ctx.fillStyle = 'rgba(255, 0, 0, 0.8)';
+                     ctx.beginPath();
+                     ctx.arc(endX, endY, 3, 0, 2 * Math.PI);
+                     ctx.fill();
+                 }
+             }
+             ctx.restore();
+        }
+
+        // --- Wall Repulsion Parameters ---
+        const ENABLE_REPULSION = true; // Toggle this feature easily
+        const REPULSION_THRESHOLD = blockSize * 0.8; // How close a wall must be to trigger repulsion (Increased slightly)
+        const REPULSION_STRENGTH = 0.07; // Base strength of the steering force (Increased slightly)
+
+         // --- Car Physics Update (Includes Repulsion) ---
+         function updateCarPhysics(action) {
+            let currentFriction = car.friction;
+            let targetAcceleration = 0;
+
+            // 1. Determine Acceleration/Deceleration based on action
+            if (!car.collided) {
+                if (action === 'forward' || action === 'manual_forward') { targetAcceleration = car.acceleration; }
+                else if (action === 'brake' || action === 'manual_down') { targetAcceleration = -car.brakePower; }
+                else if (action === 'coast') { currentFriction = car.coastFriction; targetAcceleration = 0; }
+                else { currentFriction = car.coastFriction; } // Default to coast friction if only turning
+
+                 // 2. Apply Turning Impulse from AI/Manual Action
+                 if (action === 'left' || action === 'manual_left') { car.angleSpeed -= car.turnRate; }
+                 else if (action === 'right' || action === 'manual_right') { car.angleSpeed += car.turnRate; }
+            }
+
+            // 3. Apply Reactive Wall Repulsion
+            if (ENABLE_REPULSION && !car.collided && car.sensors.length === car.sensorAngles.length) {
+                let repulsionAngleSpeedAdjustment = 0;
+
+                for (let i = 0; i < car.sensors.length; i++) {
+                    const sensor = car.sensors[i];
+                    const sensorAngleOffset = car.sensorAngles[i]; // Relative angle offset
+
+                    if (sensor.distance < REPULSION_THRESHOLD) {
+                        const proximityFactor = 1.0 - (sensor.distance / REPULSION_THRESHOLD); // [0, 1]
+                        const force = REPULSION_STRENGTH * proximityFactor * proximityFactor; // Quadratic falloff
+
+                        if (sensorAngleOffset < -0.01) { // Sensor on the left
+                            repulsionAngleSpeedAdjustment += force; // Turn right
+                        } else if (sensorAngleOffset > 0.01) { // Sensor on the right
+                            repulsionAngleSpeedAdjustment -= force; // Turn left
+                        }
+                        // Optional: Add stronger reaction if front sensor is blocked?
+                    }
+                }
+                car.angleSpeed += repulsionAngleSpeedAdjustment; // Apply accumulated adjustment
+            }
+
+            // 4. Update Speed (based on acceleration/friction)
+            car.speed += targetAcceleration;
+            car.speed *= currentFriction;
+            car.speed = Math.max(-car.maxSpeed / 3, Math.min(car.maxSpeed, car.speed));
+            if (Math.abs(car.speed) < 0.05) car.speed = 0;
+
+            // 5. Update Angle Speed & Angle (now includes repulsion adjustment)
+            car.angleSpeed *= car.angleFriction; // Apply angle friction AFTER repulsion impulse
+            if (Math.abs(car.angleSpeed) < 0.001) car.angleSpeed = 0;
+            car.angle += car.angleSpeed;
+            car.angle = (car.angle + 2 * Math.PI) % (2 * Math.PI); // Normalize [0, 2PI)
+
+            // 6. Calculate Movement and Update Position
+            const moveX = Math.cos(car.angle) * car.speed;
+            const moveY = Math.sin(car.angle) * car.speed;
+            car.x += moveX;
+            car.y += moveY;
+
+            // 7. Collision Check & Response
+            if (checkCarCollision()) {
+                car.collided = true;
+                car.x -= moveX * 1.1; // Move back slightly
+                car.y -= moveY * 1.1;
+                car.speed = 0;
+                car.angleSpeed = 0; // Stop angular speed on collision too
+            } else {
+                 car.collided = false;
+            }
+
+             // 8. Check End Reached
+             const currentCellX = Math.floor(car.x / blockSize);
+             const currentCellY = Math.floor(car.y / blockSize);
+             // Check if endPos is defined and car is within its cell
+             car.reachedEnd = (endPos && currentCellX === endPos.x && currentCellY === endPos.y);
+         }
+
+
+        // --- Q-Learning Enhancements ---
+        let qTable = {}; // WARNING: State space will be HUGE! DQN Recommended.
+        // Expanded Action Space
+        const actions = ['forward', 'left', 'right', 'brake', 'coast'];
+
+        // Hyperparameters (NEED EXTENSIVE TUNING)
+        let ALPHA = 0.05; // Lower learning rate for complex state/rewards
+        const GAMMA = 0.98; // Higher discount for goal focus
+        let epsilon = 0.95; // Start high exploration
+        let EPSILON_DECAY = 0.9998; // Slower decay needed
+        const EPSILON_MIN = 0.05;
+
+        // Rewards/Penalties (NEED TUNING)
+        const REWARD_GOAL = 500;
+        const REWARD_WALL_COLLISION = -250; // Increased penalty
+        const REWARD_MOVE_TIME_PENALTY = -0.25; // Increased penalty per step
+        const REWARD_CLOSER_TO_GOAL = 0.6;    // Slightly increased reward
+        const REWARD_ALIGNMENT_BONUS = 2.5;   // Bonus for pointing towards goal
+        const REWARD_PROXIMITY_PENALTY = -6.0;// Penalty for being too close to walls
+        const PROXIMITY_THRESHOLD = blockSize * 0.7; // When proximity penalty starts (matched repulsion slightly)
+
+        // State Discretization Bins
+        const SENSOR_BINS = 5; // Increased sensor granularity
+        const ANGLE_BINS = 8;
+        const VELOCITY_BINS = 5;
+        const GOAL_ANGLE_BINS = 8;
+        const MAX_EXPECTED_SPEED = car.maxSpeed * 1.1; // For velocity binning
+
+        let episode = 0;
+        let steps = 0;
+        let MAX_STEPS_PER_EPISODE = (mazeWidth * mazeHeight) * 4; // Adjust based on maze size later?
+        let trainingActive = true;
+        let totalSuccesses = 0;
+        let lastDistanceToGoal = Infinity;
+
+        // --- State Calculation Functions ---
+        function discretizeDistance(distance) {
+            const binSize = car.sensorMaxDist / SENSOR_BINS;
+            return Math.min(Math.floor(distance / binSize), SENSOR_BINS - 1);
+        }
+        function discretizeAngle(angle) {
+             angle = (angle % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI); // Normalize to [0, 2PI)
+             return Math.floor(angle / ((2 * Math.PI) / ANGLE_BINS));
+        }
+        function discretizeVelocity(speed) {
+            // Map speed [ -max/3, max ] to bins [0, VELOCITY_BINS-1]
+            const speedRange = MAX_EXPECTED_SPEED - (-MAX_EXPECTED_SPEED / 3);
+            const normalizedSpeed = speed + MAX_EXPECTED_SPEED / 3; // Shift to start at 0
+             let bin = Math.floor((normalizedSpeed / speedRange) * VELOCITY_BINS);
+             return Math.max(0, Math.min(bin, VELOCITY_BINS - 1)); // Clamp
+        }
+         function calculateRelativeGoalAngle() {
+             if (!endPos || endPos.x === undefined || endPos.y === undefined) return 0; // No goal defined yet or invalid
+            const goalCenterX = endPos.x * blockSize + blockSize / 2;
+            const goalCenterY = endPos.y * blockSize + blockSize / 2;
+            const dx = goalCenterX - car.x;
+            const dy = goalCenterY - car.y;
+            const goalVectorAngle = Math.atan2(dy, dx); // Angle from car to goal [ -PI, PI ]
+            let relativeAngle = goalVectorAngle - car.angle;
+            // Normalize to [-PI, PI]
+            while (relativeAngle > Math.PI) relativeAngle -= 2 * Math.PI;
+            while (relativeAngle <= -Math.PI) relativeAngle += 2 * Math.PI;
+            return relativeAngle;
+         }
+         function discretizeRelativeGoalAngle(relativeAngle) {
+             // Map [-PI, PI] to [0, GOAL_ANGLE_BINS - 1]
+             const shiftedAngle = relativeAngle + Math.PI; // Range [0, 2*PI]
+             let bin = Math.floor(shiftedAngle / ((2 * Math.PI) / GOAL_ANGLE_BINS));
+             return Math.max(0, Math.min(bin, GOAL_ANGLE_BINS - 1)); // Clamp
+         }
+
+        function getState() {
+            // Ensure sensors are up-to-date if needed for state (called before this)
+            if (!car.sensors || car.sensors.length !== car.sensorAngles.length) {
+                // console.warn("Sensors not ready for getState, updating..."); // Might happen on first step
+                updateSensors(); // Ensure sensors are calculated
+                 if (!car.sensors || car.sensors.length !== car.sensorAngles.length) return "STATE_INIT_ERROR"; // Return error if still not ready
+            }
+            const sensorStates = car.sensors.map(s => discretizeDistance(s.distance));
+            const discreteAngle = discretizeAngle(car.angle);
+            const discreteVel = discretizeVelocity(car.speed);
+            const relativeGoalAngle = calculateRelativeGoalAngle();
+            const discreteGoalAngle = discretizeRelativeGoalAngle(relativeGoalAngle);
+
+            // State without absolute cell position - relies on sensors and goal angle
+             return `A${discreteAngle}_V${discreteVel}_GA${discreteGoalAngle}_S${sensorStates.join('-')}`;
+        }
+
+        function getQValues(state) {
+            if (state === "STATE_INIT_ERROR") return Array(actions.length).fill(0); // Return default if state error
+            if (!qTable[state]) {
+                qTable[state] = Array(actions.length).fill(0); // Initialize Q-values for new state
+            }
+            return qTable[state];
+        }
+
+        // --- Action Choice (Using 'Emergency Turn' Logic) ---
+        function chooseAction(state, currentSensors) {
+            const qValues = getQValues(state); // Get Q-values for the state
+
+            if (Math.random() < epsilon && trainingActive) {
+                // --- EXPLORE ---
+                const actionIndex = Math.floor(Math.random() * actions.length);
+                // console.debug(`Action: Explore (Random) -> ${actions[actionIndex]} (${actionIndex})`);
+                return actionIndex;
+            } else {
+                // --- EXPLOIT ---
+                // console.debug(`Mode: EXPLOIT`);
+                const forwardSensorIndex = car.sensorAngles.findIndex(angle => Math.abs(angle) < 0.01); // Find forward sensor index (angle ≈ 0)
+
+                let forwardSensorDistance = car.sensorMaxDist; // Default if sensor missing
+                if (forwardSensorIndex !== -1 && currentSensors?.[forwardSensorIndex]) {
+                    forwardSensorDistance = currentSensors[forwardSensorIndex].distance;
+                } else {
+                     console.warn("Could not find forward sensor data for exploitation check.");
+                     // If sensor missing, fall back to best Q purely (less ideal but safe)
+                     // console.debug(`Action Choice: EXPLOIT (Forward sensor missing, choosing best Q)`);
+                     let bestAction = 0; for (let i = 1; i < qValues.length; i++) { if (qValues[i] > qValues[bestAction]) bestAction = i; }
+                     const bestValue = qValues[bestAction]; const bestActions = [];
+                     for(let i = 0; i < qValues.length; i++) { if (qValues[i] === bestValue) bestActions.push(i); }
+                     const chosenIndex = bestActions[Math.floor(Math.random() * bestActions.length)];
+                     // console.debug(` -> Best Q Action: ${actions[chosenIndex]} (${chosenIndex})`);
+                     return chosenIndex;
+                }
+
+                // *** EXPLOITATION LOGIC ***
+                // Only deviate from 'forward' if wall is REALLY close directly ahead.
+                const emergencyTurnThreshold = blockSize * 0.9; // Adjust based on testing
+
+                // console.debug(`Forward Sensor Dist: ${forwardSensorDistance.toFixed(1)}, Emergency Threshold: ${emergencyTurnThreshold.toFixed(1)}`);
+
+                if (forwardSensorDistance <= emergencyTurnThreshold) {
+                     // IMMINENT OBSTACLE: Fall back to best Q-value to decide turn/action
+                     // console.debug(`Action Choice: EXPLOIT (IMMINENT OBSTACLE, choosing best Q)`);
+                     let bestAction = 0; for (let i = 1; i < qValues.length; i++) { if (qValues[i] > qValues[bestAction]) bestAction = i; }
+                     const bestValue = qValues[bestAction]; const bestActions = [];
+                     for(let i = 0; i < qValues.length; i++) { if (qValues[i] === bestValue) bestActions.push(i); }
+                     const chosenIndex = bestActions[Math.floor(Math.random() * bestActions.length)];
+                     // console.debug(` -> Best Q Action: ${actions[chosenIndex]} (${chosenIndex})`);
+                     return chosenIndex;
+
+                } else {
+                     // DEFAULT EXPLOIT ACTION: GO FORWARD
+                     // Path is clear enough or wall is not immediately critical. Prioritize 'forward'.
+                     // console.debug(`Action Choice: EXPLOIT (Defaulting/Path Clear Enough) -> forward (0)`);
+                     return 0; // Index for 'forward'
+                }
+            }
+        }
+
+
+        // --- Training Step ---
+        function runTrainingStep() {
+             if (!trainingActive || manualMode) return; // Exit if paused or manual
+
+             // --- Check for Episode End ---
+             if (car.reachedEnd || car.collided || steps >= MAX_STEPS_PER_EPISODE) {
+                 if (car.reachedEnd) { totalSuccesses++; console.log(`%cSUCCESS Ep ${episode}, Steps: ${steps}`, 'color: green; font-weight: bold;'); }
+                 else if (car.collided) { console.log(`%cCOLLISION Ep ${episode}, Steps: ${steps}`, 'color: red;'); }
+                 else { console.log(`MAX STEPS Ep ${episode}`); }
+
+                 episode++;
+                 // Curriculum Learning: Increase maze size periodically
+                 if (episode > 0 && episode % curriculumEpisodeInterval === 0) {
+                    if (currentMazeWidth < maxMazeWidth || currentMazeHeight < maxMazeHeight) {
+                        console.log(`--- Curriculum: Increasing Maze Size (Episode ${episode}) ---`);
+                        currentMazeWidth = Math.min(maxMazeWidth, currentMazeWidth + mazeSizeIncrement);
+                        currentMazeHeight = Math.min(maxMazeHeight, currentMazeHeight + mazeSizeIncrement);
+                         mazeWidth = currentMazeWidth; mazeHeight = currentMazeHeight; // Update globals
+                         canvas.width = mazeWidth * blockSize; canvas.height = mazeHeight * blockSize;
+                         maze = generateMaze(mazeWidth, mazeHeight); // Regenerate maze
+                         MAX_STEPS_PER_EPISODE = (mazeWidth * mazeHeight) * 4; // Update max steps for new size
+                         // Q-table is NOT cleared - agent must adapt.
+                    }
+                 }
+
+                 steps = 0;
+                 resetCar(); // Resets position, speed, flags
+                 updateSensors(); // IMPORTANT: Update sensors right after reset for the initial state
+                 lastDistanceToGoal = calculateDistanceToGoal(); // Reset distance tracking
+                 if (epsilon > EPSILON_MIN) epsilon *= EPSILON_DECAY; // Decay exploration rate
+
+                 // Optional: Adaptive Learning Rate (simple decay example)
+                 // ALPHA = Math.max(0.01, ALPHA * 0.9995); // Decrease ALPHA slowly over time
+
+                 updateStatus();
+                 return; // End this step, start fresh next time
+             }
+
+             // --- Regular Training Step ---
+             updateSensors(); // Get sensor data for current position BEFORE choosing action
+             const state = getState(); // Get state BEFORE action
+
+             if (state === "STATE_INIT_ERROR") {
+                 console.error("Skipping training step due to state initialization error.");
+                 steps++; // Increment steps to avoid infinite loop if error persists
+                 return;
+             }
+
+             const actionIndex = chooseAction(state, car.sensors);
+             const action = actions[actionIndex];
+
+             // Store state needed for reward calc before physics update
+             const prevDistanceToGoal = calculateDistanceToGoal();
+             const prevRelativeGoalAngle = calculateRelativeGoalAngle();
+             const minSensorDistBefore = (car.sensors && car.sensors.length > 0) ? Math.min(...car.sensors.map(s => s.distance)) : car.sensorMaxDist;
+
+             // Take action (Update physics)
+             updateCarPhysics(action);
+
+             // Get state AFTER action (for Q-update)
+             updateSensors(); // Update sensors for the NEW position
+             const nextState = getState();
+
+             if (nextState === "STATE_INIT_ERROR") {
+                 console.error("Skipping Q-update due to next_state initialization error.");
+                 steps++;
+                 return;
+             }
+
+             // Calculate Reward
+             let reward = 0;
+             if (car.collided) { reward = REWARD_WALL_COLLISION; }
+             else if (car.reachedEnd) { reward = REWARD_GOAL; }
+             else {
+                 reward += REWARD_MOVE_TIME_PENALTY; // Time penalty applies always unless goal/collision
+
+                 // Closer to goal reward
+                 const currentDistanceToGoal = calculateDistanceToGoal();
+                 if (currentDistanceToGoal < prevDistanceToGoal) {
+                     // Reward proportionally to how much closer? Or constant bonus?
+                     // reward += REWARD_CLOSER_TO_GOAL * (prevDistanceToGoal - currentDistanceToGoal); // Proportional
+                     reward += REWARD_CLOSER_TO_GOAL; // Constant bonus
+                 }
+                 lastDistanceToGoal = currentDistanceToGoal; // Update tracking var for next step
+
+                 // Alignment reward (based on angle BEFORE move relative to goal)
+                 const alignDiff = Math.abs(prevRelativeGoalAngle); // Angle difference in radians [0, PI]
+                 // Reward is max when alignDiff is 0, min when PI. Using cosine-like scaling.
+                 reward += REWARD_ALIGNMENT_BONUS * (Math.cos(alignDiff) + 1) / 2; // Scale bonus from 0 to MAX based on alignment
+
+                 // Proximity penalty (based on sensors BEFORE move)
+                 if (minSensorDistBefore < PROXIMITY_THRESHOLD) {
+                     // Penalty increases quadratically as distance decreases
+                     const proxFactor = 1.0 - (minSensorDistBefore / PROXIMITY_THRESHOLD); // [0, 1]
+                     const proxPenalty = REWARD_PROXIMITY_PENALTY * proxFactor * proxFactor; // Quadratic penalty
+                     reward += proxPenalty;
+                 }
+             }
+
+             // Update Q-Value (Tabular Q-Learning)
+             const oldQValue = getQValues(state)[actionIndex];
+             const nextQValues = getQValues(nextState);
+             // If the next state is terminal (collision/goal), maxNextQ is 0. Otherwise, use max Q of next state.
+             const maxNextQ = (car.collided || car.reachedEnd) ? 0 : Math.max(...nextQValues);
+
+             const newQValue = oldQValue + ALPHA * (reward + GAMMA * maxNextQ - oldQValue);
+             qTable[state][actionIndex] = newQValue; // Update the table
+
+              // --- DQN Placeholder ---
+              // if (usingDQN) {
+              //    addToReplayBuffer(state, actionIndex, reward, nextState, car.reachedEnd || car.collided);
+              //    if (replayBuffer.length > BATCH_SIZE) { trainDQNBatch(); }
+              // }
+
+             steps++;
+             updateStatus(); // Update UI
+         }
+
+        function calculateDistanceToGoal() {
+            if(!endPos || endPos.x === undefined || endPos.y === undefined) return Infinity; // Handle cases where goal isn't set
+            const goalCenterX = endPos.x * blockSize + blockSize / 2;
+            const goalCenterY = endPos.y * blockSize + blockSize / 2;
+            return Math.hypot(goalCenterX - car.x, goalCenterY - car.y); // More efficient distance calc
+         }
+
+        function updateStatus() {
+              const mode = manualMode ? "MANUAL" : (trainingActive ? "Training" : "Paused");
+              const qStatesCount = Object.keys(qTable).length;
+              statusDiv.textContent = `Mode: ${mode} | Ep: ${episode}, Step: ${steps}/${MAX_STEPS_PER_EPISODE}, Epsilon: ${epsilon.toFixed(4)}\n`;
+              statusDiv.textContent += `Successes: ${totalSuccesses} | Maze: ${mazeWidth}x${mazeHeight} | Q-States: ${qStatesCount.toLocaleString()}`; // Format large numbers
+               // Add more debug info if needed, e.g., car speed/angle
+              // statusDiv.textContent += ` | Speed: ${car.speed.toFixed(1)} | Angle: ${(car.angle * 180/Math.PI).toFixed(0)}°`;
+              toggleTrainBtn.textContent = trainingActive ? 'Pause Training' : 'Resume Training';
+              manualDriveBtn.textContent = manualMode ? 'Disable Manual Drive' : 'Enable Manual Drive';
+              // Visual feedback if training is paused/manual
+              canvas.style.borderColor = (manualMode || !trainingActive) ? 'orange' : 'black';
+         }
+
+
+        // --- Persistence ---
+        const STORAGE_KEY = 'mazeCarQTable_v3_complexStateRepulsion'; // *** NEW KEY ***
+        function saveQTable() {
+             try{
+                console.log(`Attempting to save ${Object.keys(qTable).length} states...`);
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(qTable));
+                // Save metadata including maze dimensions
+                localStorage.setItem(STORAGE_KEY + '_meta', JSON.stringify({
+                    episode: episode,
+                    epsilon: epsilon,
+                    totalSuccesses: totalSuccesses,
+                    currentMazeWidth: currentMazeWidth,
+                    currentMazeHeight: currentMazeHeight
+                 }));
+                console.log(`Save successful.`);
+                updateStatus(); // Update display
+                statusDiv.textContent += " | Saved.";
+             } catch(e){
+                 console.error("Save failed:", e);
+                 alert(`Save failed. LocalStorage might be full or disabled. Error: ${e.message}`);
+             }
+         }
+
+        function loadQTable() {
+             try{
+                const dataString = localStorage.getItem(STORAGE_KEY);
+                const metaString = localStorage.getItem(STORAGE_KEY+'_meta');
+                if(dataString){
+                    console.log("Loading saved data...");
+                    qTable = JSON.parse(dataString);
+                    if (metaString) {
+                         const meta = JSON.parse(metaString);
+                         episode = meta.episode || 0;
+                         epsilon = meta.epsilon !== undefined ? meta.epsilon : 0.9; // Handle potential saved 0 epsilon
+                         totalSuccesses = meta.totalSuccesses || 0;
+                         // Load maze size if saved, otherwise use initial defaults
+                         currentMazeWidth = meta.currentMazeWidth || 21;
+                         currentMazeHeight = meta.currentMazeHeight || 15;
+                    } else {
+                        // If no meta, reset relevant values
+                        episode = 0; epsilon = 0.9; totalSuccesses = 0;
+                        currentMazeWidth = 21; currentMazeHeight = 15;
+                    }
+                    // Apply loaded maze size
+                    mazeWidth = currentMazeWidth; mazeHeight = currentMazeHeight;
+                    canvas.width = mazeWidth * blockSize; canvas.height = mazeHeight * blockSize;
+                    // Regenerate maze with loaded size AFTER loading Q-table & setting dimensions
+                    maze = generateMaze(mazeWidth, mazeHeight);
+                    console.log(`Load successful. ${Object.keys(qTable).length} states loaded. Maze size: ${mazeWidth}x${mazeHeight}`);
+                    resetCar(); // Reset car to start of loaded maze size
+                    updateSensors();
+                    updateStatus(); // Update display with loaded values
+                } else {
+                    console.log("No save data found. Starting fresh.");
+                    // Ensure maze is generated if no save data
+                    if (!maze || maze.length === 0) {
+                       maze = generateMaze(currentMazeWidth, currentMazeHeight);
+                    }
+                }
+             } catch(e){
+                 console.error("Load failed:", e);
+                 alert(`Load failed. Data might be corrupted. Error: ${e.message}`);
+                 qTable = {}; // Reset table on error
+                 episode = 0; epsilon = 0.9; totalSuccesses = 0;
+                 currentMazeWidth = 21; currentMazeHeight = 15; // Reset curriculum
+                 mazeWidth = currentMazeWidth; mazeHeight = currentMazeHeight;
+                 canvas.width = mazeWidth * blockSize; canvas.height = mazeHeight * blockSize;
+                 maze = generateMaze(mazeWidth, mazeHeight); // Generate initial maze
+                 resetCar(); updateSensors(); updateStatus();
+             }
+        }
+
+        function clearQTable() {
+             if(confirm("Are you sure you want to clear ALL saved training progress and reset the maze to the initial size?")){
+                qTable = {}; episode = 0; epsilon = 0.9; totalSuccesses = 0;
+                currentMazeWidth = 21; currentMazeHeight = 15; // Reset curriculum dimensions
+                mazeWidth = currentMazeWidth; mazeHeight = currentMazeHeight;
+                canvas.width = mazeWidth * blockSize; canvas.height = mazeHeight * blockSize;
+                localStorage.removeItem(STORAGE_KEY);
+                localStorage.removeItem(STORAGE_KEY+'_meta');
+                console.log("Q-Table and metadata cleared.");
+                maze = generateMaze(mazeWidth, mazeHeight); // Regenerate initial maze
+                resetCar(); // Reset car position as well
+                updateSensors();
+                updateStatus();
+             }
+        }
+
+        // --- Manual Control ---
+        document.addEventListener('keydown', (e) => {
+            // Prevent default browser action for arrow keys (scrolling)
+            if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+                e.preventDefault();
+            }
+            keys[e.key] = true;
+        });
+        document.addEventListener('keyup', (e) => { keys[e.key] = false; });
+
+        function handleManualInput() {
+            if (!manualMode) return;
+            let primaryAction = 'coast'; // What the up/down arrows control
+            let turnAction = null;       // What the left/right arrows control
+
+            if (keys['ArrowUp']) primaryAction = 'manual_forward';
+            else if (keys['ArrowDown']) primaryAction = 'manual_down'; // Use brake
+
+            if (keys['ArrowLeft']) turnAction = 'manual_left';
+            if (keys['ArrowRight']) turnAction = 'manual_right';
+
+            // Apply turning first if present
+            if (turnAction) {
+                updateCarPhysics(turnAction);
+            }
+
+            // Apply primary action (forward/brake/coast)
+            // This ensures physics step always happens even if only turning or coasting
+             updateCarPhysics(primaryAction);
+
+
+            // Update sensors even in manual mode for visuals
+            updateSensors();
+            updateStatus(); // Update display
+        }
+
+        // --- Event Listeners ---
+        saveBtn.addEventListener('click', saveQTable);
+        loadBtn.addEventListener('click', loadQTable);
+        clearBtn.addEventListener('click', clearQTable);
+        toggleTrainBtn.addEventListener('click', () => {
+            if (manualMode) return; // Don't toggle AI if manual
+            trainingActive = !trainingActive;
+            updateStatus();
+            console.log("Training " + (trainingActive ? "Resumed" : "Paused"));
+            if (trainingActive) {
+                 requestAnimationFrame(gameLoop); // Ensure loop keeps running if paused then resumed
+            }
+        });
+         manualDriveBtn.addEventListener('click', () => {
+            manualMode = !manualMode;
+            if (manualMode) {
+                trainingActive = false; // Force pause AI when switching to manual
+                console.log("Manual Drive Enabled");
+            } else {
+                // Leave AI paused when switching back, user must explicitly resume.
+                console.log("Manual Drive Disabled. AI is PAUSED.");
+            }
+            updateStatus();
+         });
+
+
+        // --- Game Loop ---
+        let lastTime = 0;
+        const frameTime = 1000 / 50; // Aim for ~50 FPS (~20ms per frame)
+
+        function gameLoop(timestamp) {
+            const deltaTime = timestamp - lastTime;
+
+            // Use deltaTime for potentially smoother physics if needed later,
+            // but fixed timestep simulation is often easier with Q-learning.
+            // We'll stick to fixed frame rate for now.
+
+            if (deltaTime >= frameTime) {
+                lastTime = timestamp - (deltaTime % frameTime); // Adjust lastTime to prevent drift
+
+                 if (manualMode) {
+                    handleManualInput(); // Handles physics updates internally
+                 } else if (trainingActive) {
+                    runTrainingStep(); // Handles AI logic, which calls physics update
+                 } else {
+                     // If AI paused & not manual, just update sensors for visuals?
+                      updateSensors();
+                      // Optionally update physics with 'coast' action for visual drift?
+                      // updateCarPhysics('coast'); // Uncomment for visual coasting when paused
+                 }
+
+                // Drawing (always update visuals)
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                drawMaze();
+                drawCar(); // Draws car and potentially sensors
+
+            }
+
+            requestAnimationFrame(gameLoop); // Continue the loop
+        }
+
+        // --- Initialization ---
+        function initializeSimulation() {
+            console.log("Initializing Simulation...");
+            loadQTable(); // Try loading saved data first (loads maze size too)
+            // If maze wasn't loaded/generated by loadQTable, generate initial one
+            if (!maze || maze.length === 0) {
+                console.log("No maze found after load attempt, generating initial maze.");
+                maze = generateMaze(currentMazeWidth, currentMazeHeight);
+            }
+            resetCar(); // Position car in the potentially loaded/generated maze
+            updateSensors(); // Initial sensor read for the very first frame/state
+            updateStatus(); // Initial status update
+            console.log('Game initialized. Starting loop.');
+            lastTime = performance.now(); // Set initial time for game loop
+            requestAnimationFrame(gameLoop); // Start the loop
+        }
+
+        // Start the simulation once the page is ready
+        window.onload = initializeSimulation;
+
+    </script>
+</body>
+</html>
