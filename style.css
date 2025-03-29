@@ -39,8 +39,8 @@ p:last-child { margin-bottom: 0; }
 :root {
   /* Core Palette */
   --bg-dark: #1C1F26; /* Dark blue/grey - Header */
-  --primary-accent-blue: #3A5F9E; /* Primary blue - Buttons, Links, Accents */
-  --secondary-accent-warm: #B57642; /* Warm brown/orange - Secondary Buttons, Highlights */
+  --primary-accent-blue: #5A7D9A; /* Softer Slate Blue - Buttons, Links, Accents */
+  --secondary-accent-teal: #4DB6AC; /* Teal Accent - Secondary Buttons, Highlights */
   --surface-bg: #E1E4E8; /* Light grey - Surface backgrounds, Footer */
   --bg-light: #F4F5F7; /* Very light grey/off-white - Main background */
   --card-bg: #FFFFFF; /* White - Card backgrounds */
@@ -51,16 +51,16 @@ p:last-child { margin-bottom: 0; }
   --light-text: #FFFFFF; /* White - Text on dark backgrounds */
 
   /* Utility & Semantic Colors */
-  --border-color-new: #D0D3D7; /* Light grey border */
-  --accent-highlight: #F5A623; /* Bright accent - Cart count, Badges */
-  --primary-hover-color: #2f4c81; /* Darker blue for hover */
-  --secondary-hover-color: #9c6539; /* Darker warm for hover */
+  --border-color-new: #D0D3D7; /* Light grey border - Use this for softer borders */
+  --accent-highlight: #F5A623; /* Bright accent - Cart count, Badges (Keeping orange for now) */
+  --primary-hover-color: #48657C; /* Darker Slate Blue for hover */
+  --secondary-hover-color: #3E948A; /* Darker Teal for hover */
   --success-color: #27ae60; /* Green */
   --error-color: #e74c3c; /* Red */
 
   /* Mapping to Semantic Variables */
   --primary-color: var(--primary-accent-blue);
-  --secondary-color: var(--secondary-accent-warm);
+  --secondary-color: var(--secondary-accent-teal); /* Updated mapping */
   --heading-color: var(--text-primary);
   --text-color: var(--text-primary);
   --subtle-text-color: var(--text-secondary);
@@ -84,7 +84,7 @@ p:last-child { margin-bottom: 0; }
 
 /* --- Layout & Containers (Mobile Base) --- */
 .container { width: 100%; max-width: 1200px; margin-left: auto; margin-right: auto; padding-left: 20px; padding-right: 20px; }
-section { padding: 40px 0; }
+section { padding: 50px 0; } /* Increased base vertical padding */
 
 /* --- Header (Mobile Base) --- */
 .sticky-header {
@@ -105,11 +105,17 @@ section { padding: 40px 0; }
 }
 
 .logo a {
-    font-weight: 700;
-    font-size: 1.5rem;
-    color: var(--primary-color); /* Use primary color for logo */
+    font-weight: 700; /* Keep weight bold */
+    font-size: 1.4rem; /* Slightly adjust size if needed */
+    color: var(--header-text-color); /* Use light text color for contrast */
     flex-shrink: 0; /* Prevent logo from shrinking */
     text-decoration: none; /* Ensure no underline */
+    letter-spacing: 0.5px; /* Add subtle letter spacing */
+    text-transform: uppercase; /* Uppercase for style */
+    transition: color 0.3s ease; /* Add transition */
+}
+.logo a:hover {
+    color: var(--secondary-color); /* Teal hover color */
 }
 
 /* Mobile Navigation - Hidden by default */
@@ -224,7 +230,7 @@ section { padding: 40px 0; }
     opacity: 0;
     visibility: hidden;
     transform: translateY(10px);
-    transition: opacity var(--transition-speed) ease, transform var(--transition-speed) ease, visibility var(--transition-speed) ease;
+    transition: opacity 0.25s ease, transform 0.25s ease, visibility 0.25s ease; /* Slightly faster transition */
 }
 .cart-dropdown.active {
     opacity: 1; visibility: visible; transform: translateY(0);
@@ -294,7 +300,7 @@ section { padding: 40px 0; }
     font-size: 0.95rem; /* Base button size */
     font-weight: 500;
     text-align: center;
-    border-radius: 6px;
+    border-radius: 8px; /* Slightly rounder corners */
     border: 1px solid transparent;
     cursor: pointer;
     transition: background-color var(--transition-speed) ease, border-color var(--transition-speed) ease, color var(--transition-speed) ease, transform var(--transition-speed) ease;
@@ -391,7 +397,7 @@ section { padding: 40px 0; }
 
 .product-card {
     background-color: var(--card-bg);
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-color-new); /* Softer border */
     border-radius: 8px; padding: 25px;
     display: flex; flex-direction: column;
     transition: transform var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
@@ -401,7 +407,7 @@ section { padding: 40px 0; }
 }
 .product-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(44, 47, 51, 0.1);
+    box-shadow: 0 8px 25px rgba(44, 47, 51, 0.08); /* Softer shadow */
 }
 
 /* Stagger animation delays (can be added via JS or inline style if needed) */
@@ -500,7 +506,7 @@ footer {
 
 .cart-table-container {
     background-color: var(--card-bg);
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-color-new); /* Softer border */
     border-radius: 8px;
     overflow-x: auto; /* Allow horizontal scroll on small screens if needed */
     box-shadow: 0 3px 10px rgba(0,0,0,0.05);
@@ -544,6 +550,10 @@ footer {
     background-color: var(--bg-light);
     color: var(--text-primary);
     -moz-appearance: textfield; /* Hide spinner FF */
+    transition: background-color 0.2s ease; /* Add transition */
+}
+.quantity-input:focus {
+    background-color: white; /* Change background on focus */
 }
 .quantity-input::-webkit-outer-spin-button,
 .quantity-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; } /* Hide spinner Chrome/Safari */
@@ -551,17 +561,17 @@ footer {
 .remove-item-btn {
     display: block; margin: 0 auto; padding: 5px;
     color: var(--error-color); opacity: 0.7;
-    transition: opacity var(--transition-speed) ease, transform var(--transition-speed) ease;
+    transition: opacity 0.2s ease, transform 0.2s ease; /* Slightly faster transition */
 }
 .remove-item-btn svg { width: 18px; height: 18px; display: block; }
-.remove-item-btn:hover { opacity: 1; transform: scale(1.1); }
+.remove-item-btn:hover { opacity: 1; transform: scale(1.15); } /* Slightly larger scale on hover */
 
 /* Cart Summary Box */
 .cart-summary-box {
     background-color: var(--surface-bg);
     padding: 25px; /* More padding */
     border-radius: 8px;
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-color-new); /* Softer border */
     position: static; /* Static on mobile */
 }
 .cart-summary-box h2 {
@@ -633,7 +643,7 @@ footer {
     aspect-ratio: 1 / 1; background-color: var(--surface-bg);
     border-radius: 8px; display: flex; align-items: center; justify-content: center;
     font-size: 3rem; font-weight: 300; color: var(--primary-color);
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-color-new); /* Softer border */
 }
 .product-info h1 { font-size: 1.8rem; margin-bottom: 10px; }
 .product-info .price { font-size: 1.5rem; margin-bottom: 15px; color: var(--primary-color); }
@@ -653,9 +663,9 @@ footer {
 
 .product-disclaimer {
     background-color: var(--surface-bg);
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-color-new); /* Softer border */
     border-left: 4px solid var(--secondary-color); /* Accent border */
-    padding: 15px 20px; border-radius: 4px;
+    padding: 15px 20px; border-radius: 4px; /* Keep smaller radius here */
     font-size: 0.85rem; color: var(--text-secondary); margin-top: 30px;
 }
 .product-disclaimer strong { display: block; margin-bottom: 8px; font-weight: 700; color: var(--text-primary); }
@@ -666,7 +676,7 @@ footer {
 .reviews-list { max-width: 100%; display: flex; flex-direction: column; gap: 25px; }
 .review-item {
     background-color: var(--card-bg); padding: 20px; border-radius: 8px;
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-color-new); /* Softer border */
     box-shadow: 0 2px 5px rgba(44, 47, 51, 0.05);
 }
 .review-header {
@@ -714,7 +724,7 @@ input:focus-visible, select:focus-visible, textarea:focus-visible {
 @media (min-width: 768px) {
     /* --- Layout & Containers --- */
     .container { padding-left: 30px; padding-right: 30px; }
-    section { padding: 60px 0; }
+    section { padding: 70px 0; } /* Increased tablet vertical padding */
 
     /* --- Header --- */
     .sticky-header { height: var(--header-height-desktop); }
@@ -737,7 +747,7 @@ input:focus-visible, select:focus-visible, textarea:focus-visible {
         font-weight: 400; /* Regular weight */
     }
     .main-nav a:hover, .main-nav a.active {
-        color: var(--secondary-color); /* Use warm accent for hover/active */
+        color: var(--secondary-color); /* Use teal accent for hover/active */
         background-color: transparent;
     }
     /* Underline effect */
@@ -746,7 +756,7 @@ input:focus-visible, select:focus-visible, textarea:focus-visible {
         position: absolute;
         bottom: -3px; left: 0;
         width: 100%; height: 2px;
-        background-color: var(--secondary-color);
+        background-color: var(--secondary-color); /* Teal underline */
         transform: scaleX(0); /* Hidden by default */
         transform-origin: center;
         transition: transform var(--transition-speed) ease;
@@ -837,7 +847,7 @@ input:focus-visible, select:focus-visible, textarea:focus-visible {
 @media (min-width: 1024px) {
     /* --- Layout & Containers --- */
     /* Container max-width already set */
-    section { padding: 80px 0; }
+    section { padding: 90px 0; } /* Increased desktop vertical padding */
 
     /* --- Header --- */
      .main-nav ul { gap: 35px; } /* More space between nav items */
@@ -875,4 +885,64 @@ input:focus-visible, select:focus-visible, textarea:focus-visible {
     /* Fine-tune spacing or sizes for very large screens if needed */
     .container { max-width: 1280px; } /* Slightly wider max container */
     .hero { min-height: 650px; }
+}
+
+
+/* === Custom Confirmation Modal === */
+.modal-overlay {
+    position: fixed; /* Sit on top of everything */
+    top: 0; left: 0; width: 100%; height: 100%;
+    background-color: rgba(0, 0, 0, 0.6); /* Semi-transparent black background */
+    display: flex; /* Use flexbox for centering */
+    justify-content: center;
+    align-items: center;
+    z-index: 2000; /* Ensure it's above header/dropdown */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+.modal-overlay:target, /* If using URL hash to show */
+.modal-overlay.active { /* If using JS class to show */
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal-content {
+    background-color: var(--card-bg);
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+    text-align: center;
+    max-width: 90%;
+    width: 400px; /* Max width for the modal */
+    transform: scale(0.95);
+    transition: transform 0.3s ease;
+}
+.modal-overlay.active .modal-content {
+    transform: scale(1);
+}
+
+.modal-content p {
+    font-size: 1.1rem;
+    color: var(--text-primary);
+    margin-bottom: 25px;
+    line-height: 1.5;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+.modal-actions .btn {
+    min-width: 100px; /* Ensure buttons have some minimum width */
+}
+/* Style the 'Yes' button differently if needed (e.g., danger) */
+#confirm-yes-btn {
+    background-color: var(--error-color); /* Use error color for confirmation */
+    border-color: var(--error-color);
+}
+#confirm-yes-btn:hover {
+    background-color: #c0392b; /* Darker red */
+    border-color: #c0392b;
 }

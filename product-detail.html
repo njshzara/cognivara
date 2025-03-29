@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Product Name | Aura Wellness</title>
+    <title>Product Detail | CogniVara</title> <!-- Updated Title -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700&display=swap" rel="stylesheet">
@@ -14,21 +14,32 @@
     <!-- Sticky Header -->
     <header class="sticky-header">
         <div class="container header-container">
-            <div class="logo"><a href="index.html">Aura Wellness</a></div>
-            <nav class="main-nav">
+            <div class="logo"><a href="index.html">CogniVara</a></div> <!-- Updated Branding -->
+            <nav class="main-nav" id="main-navigation"> <!-- Added ID for consistency -->
                 <ul>
                     <li><a href="index.html">Home</a></li>
                     <li><a href="products.html" class="active">Products</a></li>
-                    <li><a href="#about">About</a></li>
-                    <li><a href="#contact">Contact</a></li>
+                    <li><a href="index.html#about">About</a></li> <!-- Link to index section -->
+                    <li><a href="index.html#contact">Contact</a></li> <!-- Link to index section -->
                 </ul>
             </nav>
             <div class="header-actions">
-                <a href="#cart" class="cart-icon" aria-label="Shopping Cart">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
-                    <span class="cart-count">0</span>
-                </a>
-                <button class="mobile-menu-toggle" aria-label="Toggle Menu"><span></span><span></span><span></span></button>
+                 <!-- Replicated Cart Dropdown from index.html for consistency -->
+                <div class="cart-container">
+                    <button type="button" class="cart-icon" aria-label="Shopping Cart">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+                        <span class="cart-count">0</span>
+                    </button>
+                    <div class="cart-dropdown">
+                        <div class="cart-items"><p class="cart-empty-msg">Your cart is empty.</p></div>
+                        <div class="cart-summary">
+                            <p>Subtotal: <span class="cart-total">$0.00</span></p>
+                            <a href="cart.html" class="btn btn-secondary btn-small view-cart-btn">View Cart</a>
+                        </div>
+                        <button type="button" class="clear-cart-btn" disabled>Clear Cart</button>
+                    </div>
+                </div>
+                <button type="button" class="mobile-menu-toggle" aria-label="Toggle Menu" aria-expanded="false" aria-controls="main-navigation"><span></span><span></span><span></span></button> <!-- Added ARIA -->
             </div>
         </div>
     </header>
@@ -36,7 +47,8 @@
     <main class="product-detail-page container">
         <div class="product-layout">
             <div class="product-media">
-                <div class="media-placeholder">AW</div>
+                <!-- Placeholder - Replace with actual product image -->
+                <div class="media-placeholder">CV</div> <!-- Updated Placeholder Text -->
             </div>
             <div class="product-info">
                 <h1>Vitality Boost Formula</h1>
@@ -63,7 +75,8 @@
                 </section>
 
                 <div class="product-actions-detail">
-                    <button class="btn btn-primary btn-large">Add to Cart</button>
+                     <!-- Added data attributes for JS cart functionality -->
+                    <button type="button" class="btn btn-primary btn-large add-to-cart-btn" data-product-id="vitality01" data-product-name="Vitality Boost Formula" data-product-price="79.99">Add to Cart</button>
                 </div>
 
                 <div class="product-disclaimer">
@@ -73,47 +86,70 @@
             </div>
         </div>
 
-        <!-- Related Products Demo Section -->
-        <section class="related-products container">
-            <h2>Related Products</h2>
-            <div class="related-products-grid">
-                <div class="related-product-item">
-                    <img src="https://via.placeholder.com/200" alt="NeuroOptimize Focus Blend">
+        <!-- Related Products Section -->
+        <section class="related-products container"> <!-- Removed 'Demo' from class -->
+            <h2>You Might Also Like</h2> <!-- Changed heading -->
+            <div class="product-grid"> <!-- Use product-grid for consistent styling -->
+                <!-- Product 1 (from index.html) -->
+                <div class="product-card"> <!-- Use product-card for consistency -->
+                    <!-- Placeholder Image -->
+                    <img src="https://via.placeholder.com/300x300/E1E4E8/2C2F33?text=NeuroOptimize" alt="NeuroOptimize Focus Blend" style="aspect-ratio: 1/1; object-fit: cover; margin-bottom: 15px; border-radius: 4px;">
                     <h3>NeuroOptimize Focus Blend</h3>
                     <p class="price">$84.99</p>
-                    <button class="btn btn-secondary add-to-cart-btn" data-product-id="focus01" data-product-name="NeuroOptimize Focus Blend" data-product-price="84.99">Add to Cart</button>
+                    <div class="product-actions">
+                        <a href="product-detail-neuro.html" class="btn btn-secondary btn-small">Details</a> <!-- Added Details button -->
+                        <button type="button" class="btn btn-primary btn-small add-to-cart-btn" data-product-id="neuro01" data-product-name="NeuroOptimize Focus Blend" data-product-price="84.99">Add to Cart</button>
+                    </div>
                 </div>
-                <div class="related-product-item">
-                    <img src="https://via.placeholder.com/200" alt="Immune Support Formula">
-                    <h3>Immune Support Formula</h3>
-                    <p class="price">$69.99</p>
-                    <button class="btn btn-secondary add-to-cart-btn" data-product-id="immune01" data-product-name="Immune Support Formula" data-product-price="69.99">Add to Cart</button>
+                <!-- Product 2 (from index.html) -->
+                <div class="product-card">
+                     <img src="https://via.placeholder.com/300x300/E1E4E8/2C2F33?text=MitoCharge" alt="MitoCharge ATP Support" style="aspect-ratio: 1/1; object-fit: cover; margin-bottom: 15px; border-radius: 4px;">
+                    <h3>MitoCharge ATP Support</h3>
+                    <p class="price">$79.50</p>
+                     <div class="product-actions">
+                        <a href="product-detail-mito.html" class="btn btn-secondary btn-small">Details</a>
+                        <button type="button" class="btn btn-primary btn-small add-to-cart-btn" data-product-id="mito01" data-product-name="MitoCharge ATP Support" data-product-price="79.50">Add to Cart</button>
+                    </div>
                 </div>
-                <div class="related-product-item">
-                    <img src="https://via.placeholder.com/200" alt="Relaxation Blend">
-                    <h3>Relaxation Blend</h3>
-                    <p class="price">$74.99</p>
-                    <button class="btn btn-secondary add-to-cart-btn" data-product-id="relax01" data-product-name="Relaxation Blend" data-product-price="74.99">Add to Cart</button>
+                <!-- Product 3 (from index.html) -->
+                <div class="product-card">
+                     <img src="https://via.placeholder.com/300x300/E1E4E8/2C2F33?text=Restore" alt="Restore & Repair Complex" style="aspect-ratio: 1/1; object-fit: cover; margin-bottom: 15px; border-radius: 4px;">
+                    <h3>Restore & Repair Complex</h3>
+                    <p class="price">$92.00</p>
+                     <div class="product-actions">
+                        <a href="product-detail-restore.html" class="btn btn-secondary btn-small">Details</a>
+                        <button type="button" class="btn btn-primary btn-small add-to-cart-btn" data-product-id="restore01" data-product-name="Restore & Repair Complex" data-product-price="92.00">Add to Cart</button>
+                    </div>
                 </div>
             </div>
         </section>
     </main>
 
-    <!-- Footer -->
-    <footer>
-        <div class="container footer-container">
-            <div class="footer-logo">Aura Wellness<p>Committed to your enhanced well-being.</p></div>
-            <nav class="footer-nav">
-                <ul><li><a href="#privacy">Privacy Policy</a></li><li><a href="#tos">Terms of Service</a></li><li><a href="#contact">Contact Us</a></li><li><a href="#faq">FAQ</a></li></ul>
-            </nav>
-            <div class="footer-social"></div>
-        </div>
-        <div class="footer-bottom">
-            <p>© 2024 Aura Wellness. All rights reserved.</p>
-            <p class="disclaimer-footer">Disclaimer: These products are intended for use under the guidance of a healthcare professional.</p>
-        </div>
+    <!-- Footer (Copied from index.html for consistency) -->
+    <footer id="contact">
+         <div class="container footer-container">
+           <div class="footer-logo"> CogniVara <p>Pioneering science-based wellness solutions.</p></div> <!-- Updated Branding -->
+           <nav class="footer-nav"><h4>Quick Links</h4><ul><li><a href="index.html">Home</a></li><li><a href="products.html">Products</a></li><li><a href="about-us.html">About Us</a></li><li><a href="#faq">FAQ</a></li></ul></nav>
+           <nav class="footer-nav"><h4>Support</h4><ul><li><a href="#contact-info">Contact Us</a></li><li><a href="#shipping">Shipping & Returns</a></li><li><a href="#privacy">Privacy Policy</a></li><li><a href="#tos">Terms of Service</a></li></ul></nav>
+           <div class="footer-contact" id="contact-info"><h4>Get in Touch</h4><p>123 Wellness Way<br>Suite 100<br>Prosperity City, ST 12345</p><p><a href="mailto:support@cognivara.example.com">support@cognivara.example.com</a></p><p><a href="tel:+15551234567">(555) 123-4567</a></p></div>
+       </div>
+       <div class="footer-bottom"><p>© 2024 CogniVara. All rights reserved.</p><p class="disclaimer-footer">Disclaimer: These statements have not been evaluated by the Food and Drug Administration. These products are not intended to diagnose, treat, cure, or prevent any disease. Consult your physician before use.</p></div> <!-- Updated Branding -->
     </footer>
 
-    <script src="script.js"></script>
+    <!-- Scripts -->
+    <script src="https://js.stripe.com/v3/"></script> <!-- Added Stripe script -->
+    <script src="script.js" defer></script> <!-- Added defer -->
+
+    <!-- Custom Confirmation Modal (Copied from cart.html) -->
+    <div id="custom-confirm-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <p id="confirm-message">Are you sure?</p>
+            <div class="modal-actions">
+                <button id="confirm-yes-btn" class="btn btn-primary">Yes</button>
+                <button id="confirm-no-btn" class="btn btn-secondary">No</button>
+            </div>
+        </div>
+    </div>
+
 </body>
 </html>

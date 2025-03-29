@@ -77,6 +77,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const cartPageContentsDiv = document.getElementById('cart-contents'); // Wrapper for table + summary
     const emptyCartMessageDiv = document.getElementById('empty-cart-message'); // Empty cart message container
 
+    // Custom Confirm Modal Elements
+    const confirmModal = document.getElementById('custom-confirm-modal');
+    const confirmMessage = document.getElementById('confirm-message');
+    const confirmYesBtn = document.getElementById('confirm-yes-btn');
+    const confirmNoBtn = document.getElementById('confirm-no-btn');
+    let confirmCallback = null; // To store the function to run on 'Yes'
+
     // --- Cart Data ---
     const CART_STORAGE_KEY = 'cognivaraCart'; // Consistent key
     let cart = [];
@@ -254,15 +261,42 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log(`${name} added to cart.`);
     };
 
+    // --- Custom Confirmation Modal Functions ---
+    const showCustomConfirm = (message, callback) => {
+        if (!confirmModal || !confirmMessage) {
+            console.error("Custom confirm modal elements not found.");
+            // Fallback to native confirm if modal isn't there? Or just fail?
+            // For now, let's just log error and not proceed.
+            return;
+        }
+        confirmMessage.textContent = message;
+        confirmCallback = callback; // Store the action to perform on 'Yes'
+        confirmModal.style.display = 'flex'; // Show the overlay
+        setTimeout(() => confirmModal.classList.add('active'), 10); // Add active class for transition
+    };
+
+    const hideCustomConfirm = () => {
+        if (!confirmModal) return;
+        confirmModal.classList.remove('active');
+        // Wait for transition before hiding completely
+        setTimeout(() => {
+            confirmModal.style.display = 'none';
+            confirmCallback = null; // Clear callback
+        }, 300); // Match CSS transition duration
+    };
+
+    // --- Cart Actions (Modified) ---
     const clearCart = () => {
-        if (confirm("Are you sure you want to remove all items from your cart?")) {
+        // Use custom confirm instead of native confirm
+        showCustomConfirm("Are you sure you want to remove all items from your cart?", () => {
+            // This code runs only if 'Yes' is clicked in the modal
             cart = []; // Empty the cart array
             saveCart(); // Save the empty cart and update UI
             if (cartDropdown) {
                 cartDropdown.classList.remove('active'); // Close dropdown if open
             }
             console.log("Cart cleared.");
-        }
+        }); // <-- Added missing closing parenthesis and semicolon
     };
 
     const updateQuantity = (id, newQuantity) => {
@@ -294,9 +328,17 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const removeItem = (id) => {
-        const initialLength = cart.length;
-        const itemName = cart.find(item => item.id === id)?.name || 'Item'; // Get name for confirmation
-        if (confirm(`Remove ${itemName} (ID: ${id}) from cart?`)) {
+        const itemIndex = cart.findIndex(item => item.id === id);
+        if (itemIndex === -1) {
+            console.error(`Item ${id} not found for removal.`);
+            return; // Exit if item doesn't exist
+        }
+        const itemName = cart[itemIndex].name || 'Item'; // Get name for confirmation
+
+        // Use custom confirm
+        showCustomConfirm(`Remove ${itemName} from cart?`, () => {
+            // This code runs only if 'Yes' is clicked
+            const initialLength = cart.length;
             cart = cart.filter(item => item.id !== id); // Filter out the item
             if (cart.length < initialLength) {
                 saveCart(); // Save changes and update UI only if an item was actually removed
@@ -304,7 +346,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 console.error(`Item ${id} not found for removal, or removal failed.`);
             }
-        }
+        }); // <-- Added missing closing parenthesis and semicolon
     };
 
     // --- Stripe Checkout Handler (Using Price IDs & Email) ---
@@ -531,34 +573,69 @@ document.addEventListener('DOMContentLoaded', () => {
         cartPageCheckoutBtn.addEventListener('click', handleCheckout);
     }
 
+    // Custom Confirm Modal Button Listeners (only add if modal exists)
+    if (confirmModal && confirmYesBtn && confirmNoBtn) {
+        confirmYesBtn.addEventListener('click', () => {
+            if (typeof confirmCallback === 'function') {
+                confirmCallback(); // Execute the stored action
+            }
+            hideCustomConfirm();
+        });
+
+        confirmNoBtn.addEventListener('click', () => {
+            hideCustomConfirm();
+        });
+
+        // Optional: Close modal if clicking overlay
+        confirmModal.addEventListener('click', (event) => {
+            if (event.target === confirmModal) { // Check if click is on overlay itself
+                hideCustomConfirm();
+            }
+        });
+    }
+
+
     // --- Initial Render on Page Load ---
     renderCartDropdown();
     renderCartPage(); // Call this to set up cart page state
 
-    // --- Intersection Observer for Animations (Optional Enhancement) ---
-    const observedElements = document.querySelectorAll('.product-card, .welcome-section, .about-snippet, .trust-item'); // Add more selectors as needed
-    if ("IntersectionObserver" in window && observedElements.length > 0) {
+     // --- Intersection Observer for Animations (Optional Enhancement) ---
+     const observedElements = document.querySelectorAll('.product-card, .welcome-section, .about-snippet, .trust-item'); // Add more selectors as needed
+     let productCardIndex = 0; // Counter for product card delay
+
+     if ("IntersectionObserver" in window && observedElements.length > 0) {
         const observerOptions = {
             root: null, // relative to document viewport
             rootMargin: '0px',
             threshold: 0.1 // trigger when 10% of the element is visible
         };
 
-        const observerCallback = (entries, observer) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    // Add a class to trigger animation (defined in CSS)
-                    entry.target.classList.add('fade-in-up'); // Example class
-                    observer.unobserve(entry.target); // Stop observing once animated
-                }
-            });
+         const observerCallback = (entries, observer) => {
+             entries.forEach(entry => {
+                 if (entry.isIntersecting) {
+                     // Add a class to trigger animation (defined in CSS)
+                     if (entry.target.classList.contains('product-card')) {
+                         // Apply staggered delay only to product cards
+                         entry.target.style.transitionDelay = `${productCardIndex * 0.1}s`; // 100ms delay increment
+                         productCardIndex++;
+                     }
+                     entry.target.classList.add('fade-in-up'); // Apply animation class
+                     observer.unobserve(entry.target); // Stop observing once animated
+                 }
+             });
+             // Reset index if observer is reused or page reloads elements dynamically (less likely here)
+             // Consider resetting productCardIndex if elements can be added/removed dynamically without page reload.
         };
 
-        const observer = new IntersectionObserver(observerCallback, observerOptions);
-        observedElements.forEach(el => {
-             el.style.opacity = '0'; // Start elements as invisible if using fade-in
-             observer.observe(el);
-        });
+         const observer = new IntersectionObserver(observerCallback, observerOptions);
+         observedElements.forEach(el => {
+              // Ensure elements start invisible for the animation
+              // Check if already animated to prevent flicker on potential re-observes (though unobserve should handle this)
+              if (!el.classList.contains('fade-in-up')) {
+                 el.style.opacity = '0';
+              }
+              observer.observe(el);
+         });
     } else if (observedElements.length > 0) {
         // Fallback for browsers without IntersectionObserver: just make them visible
         observedElements.forEach(el => { el.style.opacity = '1'; });
